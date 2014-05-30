@@ -38,6 +38,7 @@ object Function {
     functions.Cot,
     functions.Count,
     functions.Degrees,
+    functions.Distance,
     functions.E,
     functions.EndNode,
     functions.Exp,
