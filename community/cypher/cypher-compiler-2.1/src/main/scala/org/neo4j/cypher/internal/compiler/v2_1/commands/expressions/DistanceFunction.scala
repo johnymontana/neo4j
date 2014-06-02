@@ -7,61 +7,53 @@ import org.neo4j.graphdb.Node
 import org.neo4j.cypher.CypherTypeException
 
 /** DistanceFunction
- *  @param x Expression that evaluates to WKT String (ex: "POINT (1.0 2.0)") or Node with x,y properties
- *  @param y Expression that evaluates to WKT String or Node with x,y properties
+ *  @param a Expression that evaluates to WKT String (ex: "POINT (1.0 2.0)") or Node with x,y properties
+ *  @param b Expression that evaluates to WKT String or Node with x,y properties
  *  @return Euclidean distance between x and y
  */
 
-case class DistanceFunction (x:Expression, y:Expression) extends Expression {
+case class DistanceFunction (a:Expression, b:Expression) extends Expression {
 
   /**
    *
-   * @param s WKT String (currently only supports POINT(x y) form)
+   * @param a WKT String (currently only supports POINT(x y) form), or Node with x,y attributes
    * @return Tuple (x,y) points parsed from WKT String s
    */
-  def getXYVals(s: String): (Double, Double) = {
+  def getXYVals(a: Any): (Double, Double) = {
     val WKTPointPattern = """POINT ?\(([-]?\d+\.?\d+?) ([-]?\d+\.?\d+?)\)""".r
 
-    s match {
-      case WKTPointPattern(x, y) =>
-        (x.toDouble, y.toDouble)  // FIXME: exception handling of some sort here?
-      case _ => throw new CypherTypeException("String parameters to distance() should be of form " +
-        "POINT(x y). Call to distance() with String parameter not of this form.")
+    a match {
+      case s: String =>
+        s match {
+          case WKTPointPattern(x, y) =>
+            (x.toDouble, y.toDouble) // FIXME: exception handling of some sort here?
+          case _ => throw new CypherTypeException("String parameters to distance() should be of form " +
+            "POINT(x y). Call to distance() with String parameter not of this form.")
+        }
+      case n: Node =>
+        (n.getProperty("x").asInstanceOf[Double], n.getProperty("y").asInstanceOf[Double])
+      case _ =>
+        throw new CypherTypeException("distance() expected type Node, String, or a combination of Node" +
+          "and String, but was called with some other type");
     }
   }
 
-  override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = (x(ctx), y(ctx)) match {
-    case (a: Node, b: Node) =>
-      math.sqrt( math.pow(b.getProperty("x").asInstanceOf[Double] - a.getProperty("x").asInstanceOf[Double], 2.0) +
-        math.pow(b.getProperty("y").asInstanceOf[Double]-a.getProperty("y").asInstanceOf[Double], 2.0))
-    case (a: String, b: String) =>
-      val (x1, y1) = getXYVals(a)
-      val (x2, y2) = getXYVals(b)
-      math.sqrt( math.pow(x2 - x1, 2.0) + math.pow(y2-y1, 2.0))
-    case (a: Node, b: String) =>
-      val (x2, y2) = getXYVals(b)
-      math.sqrt(math.pow(x2 - a.getProperty("x").asInstanceOf[Double], 2.0) + math.pow(y2 - a.getProperty("y").asInstanceOf[Double], 2.0))
-    case (a: String, b: Node) =>
-      val (x1, y1) = getXYVals(a)
-      math.sqrt(math.pow(b.getProperty("x").asInstanceOf[Double] - x1, 2.0) + math.pow(b.getProperty("y").asInstanceOf[Double] - y1, 2.0))
-    case (_, null) =>
-      null
-    case (null, _) =>
-      null
-    case (_, _) =>
-      throw new CypherTypeException("distance() expected type Node, String, or a combination of Node" +
-        "and String, but was called with some other type");
-
+  def computeDistance(a:(Double, Double), b:(Double,Double)): Double = {
+    math.sqrt( math.pow(b._1 - a._1, 2.0) + math.pow(b._2 - a._2, 2.0))
   }
 
-  def rewrite(f: (Expression) => Expression) = f(DistanceFunction(x.rewrite(f), y.rewrite(f)))
+  override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
+    computeDistance(getXYVals(a(ctx)), getXYVals(b(ctx)))
+  }
 
-  def arguments = Seq(x, y)
+  def rewrite(f: (Expression) => Expression) = f(DistanceFunction(a.rewrite(f), b.rewrite(f)))
 
-  def symbolTableDependencies = x.symbolTableDependencies   // FIXME: add y symbolTableDependencies ( +)
+  def arguments = Seq(a, b)
 
-  protected def calculateType(symbols: SymbolTable) = {     // FIXME: y.evaluteType ?
-    x.evaluateType(CTNode, symbols)
+  def symbolTableDependencies = a.symbolTableDependencies   // FIXME: add b symbolTableDependencies ( +)
+
+  protected def calculateType(symbols: SymbolTable) = {     // FIXME: b.evaluteType ?
+    a.evaluateType(CTNode, symbols)
     CTCollection(CTString)
   }
 
