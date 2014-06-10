@@ -19,8 +19,10 @@
  */
 package org.neo4j.cypher.internal.compiler.v2_1.profiler
 
+
 import org.neo4j.cypher.internal.compiler.v2_1._
-import pipes._
+//import pipes._
+import org.neo4j.cypher.internal.compiler.v2_1.pipes.{QueryStateHelper, PipeMonitor, QueryState, Pipe, UnionPipe, PipeWithSource,NullPipe}
 import symbols.SymbolTable
 import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
 import org.junit.Test
