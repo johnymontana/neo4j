@@ -33,10 +33,11 @@ import org.neo4j.graphdb.config.Setting
 import org.neo4j.cypher.internal.compiler.v2_1._
 import org.neo4j.cypher.internal.CypherCompiler
 import org.neo4j.cypher.internal.TransactionInfo
+import org.neo4j.gis.spatial.SpatialDatabaseService
 
 trait StringCacheMonitor extends CypherCacheMonitor[String, api.Statement]
 
-class ExecutionEngine(graph: GraphDatabaseService, logger: StringLogger = StringLogger.DEV_NULL) {
+class ExecutionEngine(graph: GraphDatabaseService, logger: StringLogger = StringLogger.DEV_NULL, spatialService: Option[SpatialDatabaseService] = None) {
 
   require(graph != null, "Can't work with a null graph database")
 
