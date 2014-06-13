@@ -11,7 +11,7 @@ case object Distance extends Function {
   def semanticCheck(ctx: ast.Expression.SemanticContext, invocation: ast.FunctionInvocation): SemanticCheck =
     checkMinArgs(invocation, 2) chain
     invocation.arguments.expectType(CTAny.covariant) chain
-    invocation.specifyType(invocation.arguments.mergeUpTypes)
+    invocation.specifyType(CTFloat)
 
   def asCommandExpression(invocation: ast.FunctionInvocation) =
     commandexpressions.DistanceFunction(
