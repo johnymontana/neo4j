@@ -22,6 +22,7 @@ package org.neo4j.cypher.javacompat;
 import java.util.Map;
 
 import org.neo4j.cypher.CypherException;
+import org.neo4j.gis.spatial.SpatialDatabaseService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.impl.util.StringLogger;
 
@@ -56,7 +57,7 @@ public class ExecutionEngine
     protected
     org.neo4j.cypher.ExecutionEngine createInnerEngine( GraphDatabaseService database, StringLogger logger )
     {
-        return new org.neo4j.cypher.ExecutionEngine( database, logger );
+        return new org.neo4j.cypher.ExecutionEngine( database, logger, scala.Option.<SpatialDatabaseService>apply(null) );
     }
 
     /**

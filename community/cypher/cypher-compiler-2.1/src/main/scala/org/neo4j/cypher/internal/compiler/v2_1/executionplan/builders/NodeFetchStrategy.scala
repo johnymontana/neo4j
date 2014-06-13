@@ -90,7 +90,7 @@ trait NodeStrategy {
   case class SolvedPredicate[+T](solution: T, predicate: Predicate)
 }
 
-object NodeByIdStrategy extends NodeStrategy {
+object NodeByIdStrategy extends NodeStrategy { // MATCH n, x WHERE id(n) = 12
 
   def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] = {
     val solvedPredicates: Seq[SolvedPredicate[Expression]] = findEqualityPredicatesForBoundIdentifiers(node, symbols, where)

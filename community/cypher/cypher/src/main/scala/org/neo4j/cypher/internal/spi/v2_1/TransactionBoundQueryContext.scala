@@ -38,8 +38,9 @@ import org.neo4j.cypher.internal.compiler.v2_1.spi._
 import org.neo4j.collection.primitive.PrimitiveLongIterator
 import org.neo4j.kernel.impl.core.{NodeManager, ThreadToStatementContextBridge}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
+import org.neo4j.unsafe.batchinsert.SpatialBatchGraphDatabaseService
 
-final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
+final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,// spatial:SpatialBatchGraphDatabaseService,
                                          var tx: Transaction,
                                          val isTopLevelTx: Boolean,
                                          var statement: Statement)
