@@ -23,6 +23,7 @@ import org.neo4j.cypher.internal.compiler.v2_1._
 import commands._
 import commands.expressions.{Expression, Identifier, Property}
 import executionplan._
+import org.neo4j.cypher.internal.compiler.v2_1.functions.Distance
 import org.neo4j.cypher.internal.compiler.v2_1.spi.PlanContext
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.PipeMonitor
 
@@ -69,6 +70,9 @@ class IndexLookupBuilder extends PlanBuilder {
 
       case predicate@QueryToken(AnyInCollection(expression, _, Equals(Property(Identifier(id), prop),Identifier(_))))
         if id == hint.identifier && prop.name == hint.property => (predicate, ManyQueryExpression(expression))
+
+      // TODO: Determine William's intent with this code
+      //case predicate@QueryToken(LessThan(Distance()))
     }
 
   private def extractInterestingStartItem(plan: ExecutionPlanInProgress): QueryToken[SchemaIndex] =

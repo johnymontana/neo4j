@@ -157,6 +157,11 @@ object GlobalStrategy extends NodeStrategy {
     Seq(RatedStartItem(AllNodes(node), Global, Seq.empty))
 }
 
+//object SpatialStrategy extends NodeStrategy {
+//  def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] =
+//    Seq(RatedStartItem())
+//}
+
 object LabelScanStrategy extends NodeStrategy {
   def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] = {
     val labelPredicates: Seq[SolvedPredicate[LabelName]] = findLabelsForNode(node, where)

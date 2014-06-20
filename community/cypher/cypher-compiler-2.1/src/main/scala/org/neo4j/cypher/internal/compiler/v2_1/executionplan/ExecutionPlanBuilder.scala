@@ -67,7 +67,9 @@ class ExecutionPlanBuilder(graph: GraphDatabaseService,
     new ExecutionPlan {
       def execute(queryContext: QueryContext, params: Map[String, Any]) = func(queryContext, params, false)
 
-      def profile(queryContext: QueryContext, params: Map[String, Any]) = func(new UpdateCountingQueryContext(queryContext), params, true)
+      // TODO: following line changed by William GSoC, please review purpose and meaning of this.
+      //def profile(queryContext: QueryContext, params: Map[String, Any]) = func(new UpdateCountingQueryContext(queryContext), params, true)
+      def profile(queryContext: QueryContext, params: Map[String, Any]) = func(queryContext, params, true)
       def isPeriodicCommit = periodicCommitInfo.isDefined
     }
   }
@@ -110,7 +112,9 @@ class ExecutionPlanBuilder(graph: GraphDatabaseService,
         builder.setLoadCsvPeriodicCommitObserver(periodicCommit.get.batchRowCount)
       }
 
-      builder.transformQueryContext(new UpdateCountingQueryContext(_))
+      // FIXME: should UpdateCountingQueryContext implement Spatial Operations?
+      //builder.transformQueryContext(new UpdateCountingQueryContext(_))
+
 
       if (profile)
         builder.setPipeDecorator(new Profiler())

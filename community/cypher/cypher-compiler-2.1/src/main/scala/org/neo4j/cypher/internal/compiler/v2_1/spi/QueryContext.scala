@@ -20,6 +20,7 @@
 
 package org.neo4j.cypher.internal.compiler.v2_1.spi
 
+import org.neo4j.gis.spatial.Layer
 import org.neo4j.graphdb._
 import org.neo4j.kernel.api.constraints.UniquenessConstraint
 import org.neo4j.kernel.api.index.IndexDescriptor
@@ -41,6 +42,8 @@ trait QueryContext extends TokenContext {
   def nodeOps: Operations[Node]
 
   def relationshipOps: Operations[Relationship]
+
+  //def spatialOps: SpatialOperations
 
   def createNode(): Node
 
@@ -96,6 +99,10 @@ trait QueryContext extends TokenContext {
   def withAnyOpenQueryContext[T](work: (QueryContext) => T): T
 
   def commitAndRestartTx()
+
+  //def getLayer(name:String): Layer
+
+  //def createSimplePointLayer(name: String)
 }
 
 trait LockingQueryContext extends QueryContext {
@@ -124,4 +131,13 @@ trait Operations[T <: PropertyContainer] {
   def isDeleted(obj: T): Boolean
 
   def all: Iterator[T]
+}
+
+// Spatial Operations
+trait SpatialOperations extends QueryContext {
+  def createSimplePointLayer(name: String)
+
+  def getLayer(name:String): Option[Layer]
+
+
 }

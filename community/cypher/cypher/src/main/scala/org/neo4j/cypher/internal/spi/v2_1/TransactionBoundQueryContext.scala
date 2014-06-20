@@ -19,6 +19,7 @@
  */
 package org.neo4j.cypher.internal.spi.v2_1
 
+import org.neo4j.gis.spatial.{Layer, SpatialDatabaseService}
 import org.neo4j.graphdb._
 import org.neo4j.kernel.{InternalAbstractGraphDatabase, GraphDatabaseAPI}
 import collection.JavaConverters._
@@ -40,7 +41,7 @@ import org.neo4j.kernel.impl.core.{NodeManager, ThreadToStatementContextBridge}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.unsafe.batchinsert.SpatialBatchGraphDatabaseService
 
-final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,// spatial:SpatialBatchGraphDatabaseService,
+class TransactionBoundQueryContext(graph: GraphDatabaseAPI, //spatial:SpatialDatabaseService,
                                          var tx: Transaction,
                                          val isTopLevelTx: Boolean,
                                          var statement: Statement)
@@ -127,6 +128,8 @@ final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,// spatial:Spat
 
   val relationshipOps = new RelationshipOperations
 
+  //val spatialOps = new SpatialOperations
+
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int = labelIds.foldLeft(0) {
     case (count, labelId) =>
       if (statement.dataWriteOperations().nodeRemoveLabel(node, labelId)) count + 1 else count
@@ -174,6 +177,17 @@ final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,// spatial:Spat
       graph.index.forNodes(name).query(query).iterator().asScala
 
     def isDeleted(obj: Node): Boolean = nodeManager.isDeleted(obj)
+  }
+
+  class SpatialOperations {
+    def getLayer(name: String): Option[Layer] = {
+      // do nothing
+     None
+    }
+
+    def createSimplePointLayer(name: String){
+      // do nothing
+    }
   }
 
   class RelationshipOperations extends BaseOperations[Relationship] {
