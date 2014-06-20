@@ -20,6 +20,7 @@
 package org.neo4j.cypher.internal
 
 import org.neo4j.cypher._
+import org.neo4j.gis.spatial.SpatialDatabaseService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.{GraphDatabaseAPI, InternalAbstractGraphDatabase}
@@ -29,10 +30,9 @@ import org.neo4j.cypher.internal.compiler.v1_9.{CypherCompiler => CypherCompiler
 import org.neo4j.cypher.internal.compiler.v2_1.executionplan.{ExecutionPlan => ExecutionPlan_v2_1}
 import org.neo4j.cypher.internal.compiler.v2_0.executionplan.{ExecutionPlan => ExecutionPlan_v2_0}
 import org.neo4j.cypher.internal.compiler.v1_9.executionplan.{ExecutionPlan => ExecutionPlan_v1_9}
-import org.neo4j.cypher.internal.spi.v2_1.{TransactionBoundQueryContext => QueryContext_v2_1}
+import org.neo4j.cypher.internal.spi.v2_1.{TransactionBoundQueryContext => QueryContext_v2_1, TransactionBoundPlanContext => PlanContext_v2_1, SpatialTransactionBoundQueryContext}
 import org.neo4j.cypher.internal.spi.v2_0.{TransactionBoundQueryContext => QueryContext_v2_0}
 import org.neo4j.cypher.internal.spi.v1_9.{GDSBackedQueryContext => QueryContext_v1_9}
-import org.neo4j.cypher.internal.spi.v2_1.{TransactionBoundPlanContext => PlanContext_v2_1}
 import org.neo4j.cypher.internal.spi.v2_0.{TransactionBoundPlanContext => PlanContext_v2_0}
 import org.neo4j.cypher.internal.compiler.v2_1.spi.{ExceptionTranslatingQueryContext => ExceptionTranslatingQueryContext_v2_1}
 import org.neo4j.cypher.internal.compiler.v2_0.spi.{ExceptionTranslatingQueryContext => ExceptionTranslatingQueryContext_v2_0}
@@ -115,8 +115,11 @@ class CypherCompiler(graph: GraphDatabaseService,
 class ExecutionPlanWrapperForV2_1(inner: ExecutionPlan_v2_1) extends ExecutionPlan {
 
   private def queryContext(graph: GraphDatabaseAPI, txInfo: TransactionInfo) = {
-    val ctx = new QueryContext_v2_1(graph, txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
-    new ExceptionTranslatingQueryContext_v2_1(ctx)
+    //val ctx = new QueryContext_v2_1(graph, new SpatialDatabaseService(graph), txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
+    val ctx = new SpatialTransactionBoundQueryContext(graph, new SpatialDatabaseService(graph), txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
+    ctx
+    // FIXME: should ExeceptionTranslatingQueryContext implement Spatial Operations?
+    //new ExceptionTranslatingQueryContext_v2_1(ctx)
   }
 
   def profile(graph: GraphDatabaseAPI, txInfo: TransactionInfo, params: Map[String, Any]) =

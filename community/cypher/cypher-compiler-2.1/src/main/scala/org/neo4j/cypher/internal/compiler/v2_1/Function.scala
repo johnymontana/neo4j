@@ -47,6 +47,7 @@ object Function {
     functions.Haversin,
     functions.Head,
     functions.Id,
+    functions.Intersects,
     functions.Labels,
     functions.Last,
     functions.Left,

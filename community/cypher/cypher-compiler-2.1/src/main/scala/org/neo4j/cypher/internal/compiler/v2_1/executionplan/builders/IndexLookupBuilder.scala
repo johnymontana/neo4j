@@ -23,6 +23,7 @@ import org.neo4j.cypher.internal.compiler.v2_1._
 import commands._
 import commands.expressions.{Expression, Identifier, Property}
 import executionplan._
+import org.neo4j.cypher.internal.compiler.v2_1.functions.Distance
 import org.neo4j.cypher.internal.compiler.v2_1.spi.PlanContext
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.PipeMonitor
 
@@ -66,6 +67,8 @@ class IndexLookupBuilder extends PlanBuilder {
 
       case predicate@QueryToken(Equals(expression, Property(Identifier(id), prop)))
         if id == hint.identifier && prop.name == hint.property => (predicate, expression)
+
+      //case predicate@QueryToken(LessThan(Distance()))
     }
 
   private def extractInterestingStartItem(plan: ExecutionPlanInProgress): QueryToken[SchemaIndex] =

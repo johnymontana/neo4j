@@ -106,7 +106,8 @@ class ExceptionTranslatingQueryContext(inner: QueryContext) extends DelegatingQu
   override def withAnyOpenQueryContext[T](work: (QueryContext) => T): T =
     super.withAnyOpenQueryContext(qc =>
       translateException(
-        work(new ExceptionTranslatingQueryContext(qc))
+        //work(new ExceptionTranslatingQueryContext(qc))
+        work(qc)
       ))
 
   override def isLabelSetOnNode(label: Int, node: Long): Boolean =
