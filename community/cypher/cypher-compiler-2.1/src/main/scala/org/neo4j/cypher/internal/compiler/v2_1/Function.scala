@@ -76,6 +76,8 @@ object Function {
     functions.Sign,
     functions.Sin,
     functions.Size,
+    functions.SpatialCreateLayer,
+    functions.SpatialAddNode,
     functions.Sqrt,
     functions.Split,
     functions.StartNode,

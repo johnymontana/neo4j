@@ -44,7 +44,7 @@ case class IntersectsFunction(a:Expression, b:Expression) extends Expression {
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     // Assume we have a PointLayer 'Geometry"
     // FIXME: where to get actual layer name
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer("Geometry")
+    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer("SomeLayer")
     val spatialIndex: SpatialIndexReader = layer.getIndex
 
     // FIXME: inefficient (BAD) implementation here, refactor this:

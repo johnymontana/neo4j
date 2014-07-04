@@ -47,7 +47,12 @@ class SpatialTransactionBoundQueryContext(graph: GraphDatabaseAPI, var spatial:S
   }
 
   def createSimplePointLayer(name:String) = {
-    spatial.getOrCreatePointLayer(name, "x", "y") // FIXME: hardcoded x,y here
+    //spatial.getOrCreatePointLayer(name, "x", "y") // FIXME: hardcoded x,y here
+    spatial.getOrCreateRegisteredTypeLayer(name, "SimplePoint", null)
+  }
+
+  def createLayer(name: String, layerType: String) = {
+    spatial.getOrCreateRegisteredTypeLayer(name, layerType, null)
   }
 
 
