@@ -22,7 +22,7 @@ class DistanceTest extends Assertions with MockitoSugar {
    * Test WKT POINT(x y), POINT (x y)
    */
   @Test def givenAStringAndStringReturnDistance() {
-    val func = new DistanceFunction(Literal("POINT (15.34 20)"), Literal("POINT (20 10)"))
+    val func = new DistanceFunction(Literal("POINT (15.34 20)"), Literal("POINT (20 10)"), Literal("layer"))
     calc(func).asInstanceOf[Double] should be (11.03 +- 0.01)
   }
 
@@ -36,7 +36,7 @@ class DistanceTest extends Assertions with MockitoSugar {
 
     val state = QueryStateHelper.emptyWith(query = queryContext)
     val ctx = ExecutionContext() += ("n1" -> node1) += ("n2" -> node2)
-    val result = DistanceFunction(Identifier("n1"), Identifier("n2"))(ctx)(state)
+    val result = DistanceFunction(Identifier("n1"), Identifier("n2"), Literal("layer"))(ctx)(state)
 
     result.asInstanceOf[Double] should be (11.03 +- 0.01)
 
@@ -52,7 +52,7 @@ class DistanceTest extends Assertions with MockitoSugar {
     val state = QueryStateHelper.emptyWith(query = queryContext)
     val ctx  = ExecutionContext() += ("n" -> node)
 
-    val result = DistanceFunction(Identifier("n"), Literal(wkt_point))(ctx)(state)
+    val result = DistanceFunction(Identifier("n"), Literal(wkt_point), Literal("layer"))(ctx)(state)
 
     result.asInstanceOf[Double] should be (11.03 +- 0.01)
   }
