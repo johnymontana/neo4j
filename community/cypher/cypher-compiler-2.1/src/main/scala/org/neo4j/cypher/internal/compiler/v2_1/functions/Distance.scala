@@ -9,14 +9,15 @@ case object Distance extends Function {
   def name = "distance"
 
   def semanticCheck(ctx: ast.Expression.SemanticContext, invocation: ast.FunctionInvocation): SemanticCheck =
-    checkMinArgs(invocation, 2) chain
+    checkMinArgs(invocation, 3) chain
     invocation.arguments.expectType(CTAny.covariant) chain
     invocation.specifyType(CTFloat)
 
   def asCommandExpression(invocation: ast.FunctionInvocation) =
     commandexpressions.DistanceFunction(
       invocation.arguments(0).asCommandExpression,
-      invocation.arguments(1).asCommandExpression
+      invocation.arguments(1).asCommandExpression,
+      invocation.arguments(2).asCommandExpression
     )
 
 }
