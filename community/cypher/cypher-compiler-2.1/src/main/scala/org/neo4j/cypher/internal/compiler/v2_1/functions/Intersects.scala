@@ -13,13 +13,14 @@ case object Intersects extends Function {
   def name = "intersects"
 
   def semanticCheck(ctx: ast.Expression.SemanticContext, invocation: ast.FunctionInvocation): SemanticCheck =
-    checkMinArgs(invocation, 2) chain
+    checkMinArgs(invocation, 3) chain
       invocation.arguments.expectType(CTAny.covariant) chain
       invocation.specifyType(CTBoolean)
 
   def asCommandExpression(invocation: ast.FunctionInvocation) =
     IntersectsFunction(
       invocation.arguments(0).asCommandExpression,
-      invocation.arguments(1).asCommandExpression
+      invocation.arguments(1).asCommandExpression,
+      invocation.arguments(2).asCommandExpression
     )
 }

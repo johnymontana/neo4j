@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
  */
 
 
-case class IntersectsFunction(a:Expression, b:Expression) extends Expression {
+case class IntersectsFunction(a:Expression, b:Expression, layerExp:Expression) extends Expression {
 
   // TODO: This should be made as abstract as possible for resuse in a util object at some point
   def getGeometry(a: Any, layer: Layer): Geometry = {
@@ -44,7 +44,7 @@ case class IntersectsFunction(a:Expression, b:Expression) extends Expression {
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     // Assume we have a PointLayer 'Geometry"
     // FIXME: where to get actual layer name
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer("SomeLayer")
+    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerExp(ctx).asInstanceOf[String])
     val spatialIndex: SpatialIndexReader = layer.getIndex
 
     // FIXME: inefficient (BAD) implementation here, refactor this:
@@ -67,9 +67,9 @@ case class IntersectsFunction(a:Expression, b:Expression) extends Expression {
 
   }
 
-  def arguments = Seq(a, b)
+  def arguments = Seq(a, b, layerExp)
 
-  def rewrite(f: (Expression) => Expression) = f(IntersectsFunction(a.rewrite(f), b.rewrite(f)))
+  def rewrite(f: (Expression) => Expression) = f(IntersectsFunction(a.rewrite(f), b.rewrite(f), layerExp.rewrite(f)))
 
   def symbolTableDependencies = a.symbolTableDependencies   // FIXME: add b symbolTableDependencies ( +)
 
