@@ -26,9 +26,9 @@ class IntersectsTest extends Assertions with MockitoSugar {
     val state = QueryStateHelper.emptyWith(query = queryContext)
     val ctx = ExecutionContext() += ("n1" -> node1) += ("n2" -> node2)
 
-    val result = IntersectsFunction(Identifier("n1"), Identifier("n2"))(ctx)(state)
+   // val result = IntersectsFunction(Identifier("n1"), Identifier("n2"))(ctx)(state)
 
-    println(result)
+   // println(result)
 
     //result should not be empty
 
