@@ -43,7 +43,8 @@ trait QueryContext extends TokenContext {
 
   def relationshipOps: Operations[Relationship]
 
-  //def spatialOps: SpatialOperations
+  // expose SpatialOperations
+  def spatialOps: SpatialOperations
 
   def createNode(): Node
 
@@ -139,5 +140,6 @@ trait SpatialOperations extends QueryContext {
 
   def getLayer(name:String): Option[Layer]
 
+  def createLayer(name: String, layerType: String)
 
 }

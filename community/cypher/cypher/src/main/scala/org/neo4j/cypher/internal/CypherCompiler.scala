@@ -31,6 +31,7 @@ import org.neo4j.cypher.internal.compiler.v2_1.{CypherCompilerFactory => CypherC
 import org.neo4j.cypher.internal.spi.v1_9.{GDSBackedQueryContext => QueryContext_v1_9}
 import org.neo4j.cypher.internal.spi.v2_0.{TransactionBoundPlanContext => PlanContext_v2_0, TransactionBoundQueryContext => QueryContext_v2_0}
 import org.neo4j.cypher.internal.spi.v2_1.{SpatialTransactionBoundQueryContext, TransactionBoundPlanContext => PlanContext_v2_1, TransactionBoundQueryContext => QueryContext_v2_1}
+import org.neo4j.gis.spatial.SpatialDatabaseService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.api.{KernelAPI, Statement}
@@ -153,6 +154,8 @@ class ExecutionPlanWrapperForV2_1(inner: ExecutionPlan_v2_1) extends ExecutionPl
     ctx
     // FIXME: should ExeceptionTranslatingQueryContext implement Spatial Operations?
     //new ExceptionTranslatingQueryContext_v2_1(ctx)
+    // TODO: Craig suspects we should move the spatial operations into the QueryContext_v2_1 and ExceptionTranslatingQueryContext classes
+    // After first clarifying what should be in the PlanContext and QueryContext interfaces
   }
 
   def profile(graph: GraphDatabaseAPI, txInfo: TransactionInfo, params: Map[String, Any]) =

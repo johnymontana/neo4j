@@ -25,6 +25,7 @@ import org.neo4j.cypher.internal.{CypherCompiler, TransactionInfo, _}
 import org.neo4j.cypher.internal.compiler.v2_1.parser.ParserMonitor
 import org.neo4j.cypher.internal.compiler.v2_1.prettifier.Prettifier
 import org.neo4j.cypher.internal.compiler.v2_1.{CypherCacheMonitor, MonitoringCacheAccessor}
+import org.neo4j.gis.spatial.SpatialDatabaseService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.config.Setting
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
@@ -36,7 +37,7 @@ import scala.collection.JavaConverters._
 
 trait StringCacheMonitor extends CypherCacheMonitor[String, api.Statement]
 
-class ExecutionEngine(graph: GraphDatabaseService, logger: StringLogger = StringLogger.DEV_NULL) {
+class ExecutionEngine(graph: GraphDatabaseService, logger: StringLogger = StringLogger.DEV_NULL, spatialService: Option[SpatialDatabaseService] = None) {
 
   require(graph != null, "Can't work with a null graph database")
 

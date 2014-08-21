@@ -23,7 +23,6 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import org.neo4j.gis.spatial.rtree.SpatialIndexReader
 import org.neo4j.cypher.internal.compiler.v2_1._
-import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
 import org.neo4j.gis.spatial.Layer
 import pipes.QueryState
 import symbols._
@@ -83,7 +82,7 @@ case class DistanceFunction (a:Expression, b:Expression, layerExp:Expression) ex
 
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     //computeDistance(getXYVals(a(ctx)), getXYVals(b(ctx)))
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerExp(ctx).asInstanceOf[String])
+    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String])
     //val spatialIndex: SpatialIndexReader = layer.getIndex
 
     getGeometry(a(ctx), layer).distance(getGeometry(b(ctx), layer))

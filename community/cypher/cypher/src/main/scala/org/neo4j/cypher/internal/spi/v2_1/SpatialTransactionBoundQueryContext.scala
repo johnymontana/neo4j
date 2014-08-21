@@ -19,8 +19,8 @@
  */
 package org.neo4j.cypher.internal.spi.v2_1
 
-import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
-import org.neo4j.gis.spatial.SpatialDatabaseService
+import org.neo4j.cypher.internal.compiler.v2_1.spi.{SpatialOperations, QueryContext}
+import org.neo4j.gis.spatial.{Layer, SpatialDatabaseService}
 import org.neo4j.graphdb.Transaction
 import org.neo4j.kernel.GraphDatabaseAPI
 import org.neo4j.kernel.api.Statement
@@ -31,7 +31,7 @@ import org.neo4j.kernel.api.Statement
 class SpatialTransactionBoundQueryContext(graph: GraphDatabaseAPI, var spatial:SpatialDatabaseService,
                                           tx: Transaction,
                                           isTopLevelTx: Boolean,
-                                          statement: Statement) extends TransactionBoundQueryContext(graph, tx, isTopLevelTx, statement) {
+                                          statement: Statement) extends TransactionBoundQueryContext(graph, tx, isTopLevelTx, statement) with SpatialOperations{
 
   // FIXME: instantiate here or is this passed from somewhere (ExecutionEngine?)
   spatial = new SpatialDatabaseService(graph)
@@ -60,8 +60,8 @@ class SpatialTransactionBoundQueryContext(graph: GraphDatabaseAPI, var spatial:S
     }
   }
 
-  // Spatial operations, these should probably be moved into a Trait SpatialOperations
-  def getLayer(name:String) = {
+  // TODO: Spatial operations, these should probably be moved into a Trait SpatialOperations
+  def getLayer(name:String): Layer = {
     spatial.getLayer(name)
   }
 

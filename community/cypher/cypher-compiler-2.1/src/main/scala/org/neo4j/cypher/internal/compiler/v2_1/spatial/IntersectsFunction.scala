@@ -23,7 +23,6 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import org.neo4j.gis.spatial.rtree.SpatialIndexReader
 import org.neo4j.gis.spatial.rtree.filter.SearchResults
-//import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
 import org.neo4j.gis.spatial._
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
 import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Expression
@@ -63,7 +62,8 @@ case class IntersectsFunction(a:Expression, b:Expression, layerExp:Expression) e
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     // Assume we have a PointLayer 'Geometry"
     // FIXME: where to get actual layer name
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerExp(ctx).asInstanceOf[String])
+    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String])
+
     val spatialIndex: SpatialIndexReader = layer.getIndex
 
     // FIXME: inefficient (BAD) implementation here, refactor this:

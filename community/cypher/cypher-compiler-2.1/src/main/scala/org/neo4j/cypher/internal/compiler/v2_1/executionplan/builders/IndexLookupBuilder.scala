@@ -71,8 +71,6 @@ class IndexLookupBuilder extends PlanBuilder {
       case predicate@QueryToken(AnyInCollection(expression, _, Equals(Property(Identifier(id), prop),Identifier(_))))
         if id == hint.identifier && prop.name == hint.property => (predicate, ManyQueryExpression(expression))
 
-      // TODO: Determine William's intent with this code
-      //case predicate@QueryToken(LessThan(Distance()))
     }
 
   private def extractInterestingStartItem(plan: ExecutionPlanInProgress): QueryToken[SchemaIndex] =

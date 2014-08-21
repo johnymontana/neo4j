@@ -58,7 +58,7 @@ class DelegatingQueryContext(inner: QueryContext) extends QueryContext {
 
   def relationshipOps = inner.relationshipOps
 
-  //def spatialOps = inner.spatialOps
+  def spatialOps = inner.spatialOps
 
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int =
     singleDbHit(inner.removeLabelsFromNode(node, labelIds))
