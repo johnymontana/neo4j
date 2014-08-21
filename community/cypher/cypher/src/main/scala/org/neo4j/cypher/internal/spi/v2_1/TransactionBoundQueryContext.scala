@@ -127,7 +127,7 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI, //spatial:SpatialDat
 
   val relationshipOps = new RelationshipOperations
 
-  //val spatialOps = new SpatialOperations
+  val spatialOps = new SpatialOperations
 
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int = labelIds.foldLeft(0) {
     case (count, labelId) =>

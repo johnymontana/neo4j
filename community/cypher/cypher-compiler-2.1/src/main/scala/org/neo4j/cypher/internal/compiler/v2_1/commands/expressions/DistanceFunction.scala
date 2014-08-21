@@ -83,7 +83,8 @@ case class DistanceFunction (a:Expression, b:Expression, layerExp:Expression) ex
 
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     //computeDistance(getXYVals(a(ctx)), getXYVals(b(ctx)))
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerExp(ctx).asInstanceOf[String])
+    //val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerExp(ctx).asInstanceOf[String])
+    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String])
     //val spatialIndex: SpatialIndexReader = layer.getIndex
 
     getGeometry(a(ctx), layer).distance(getGeometry(b(ctx), layer))

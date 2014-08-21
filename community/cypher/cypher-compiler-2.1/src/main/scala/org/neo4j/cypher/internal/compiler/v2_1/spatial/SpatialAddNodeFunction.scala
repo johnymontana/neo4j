@@ -31,7 +31,7 @@ import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Expression
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.QueryState
 import org.neo4j.cypher.internal.compiler.v2_1.symbols.SymbolTable
 import org.neo4j.cypher.internal.compiler.v2_1.symbols._
-import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
+
 import org.neo4j.gis.spatial.Layer
 import org.neo4j.graphdb.Node
 
@@ -59,8 +59,8 @@ case class SpatialAddNodeFunction(a: Expression, b:Expression) extends Expressio
 
     val node: Node = ensureEvalNode(a)
     val layerName: String = ensureEvalString(b)
-    val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerName)
-
+    //val layer: Layer = state.query.asInstanceOf[SpatialTransactionBoundQueryContext].getLayer(layerName)
+    val layer: Layer = state.query.spatialOps.getLayer(layerName)
     layer.add(node)
     node
 

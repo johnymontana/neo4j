@@ -27,7 +27,7 @@ import com.vividsolutions.jts.io.WKTReader
 import org.neo4j.collections.rtree.SpatialIndexReader
 import org.neo4j.collections.rtree.filter.SearchResults
 import org.neo4j.cypher.CypherTypeException
-import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
+
 import org.neo4j.gis.spatial._
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
 import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Expression
@@ -68,7 +68,8 @@ case class SpatialCreateLayerFunction(a:Expression, b:Expression) extends Expres
     val layerName: String = ensureEvalString(a)
     val layerType: String = ensureEvalString(b)
 
-    state.query.asInstanceOf[SpatialTransactionBoundQueryContext].createLayer(layerName, layerType)
+    //state.query.asInstanceOf[SpatialTransactionBoundQueryContext].createLayer(layerName, layerType)
+    state.query.spatialOps.createLayer(layerName, layerType)
     layerName
 
   }
