@@ -21,9 +21,9 @@ package org.neo4j.cypher.internal.compiler.v2_1.spatial
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
-import org.neo4j.collections.rtree.SpatialIndexReader
-import org.neo4j.collections.rtree.filter.SearchResults
-import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
+import org.neo4j.gis.spatial.rtree.SpatialIndexReader
+import org.neo4j.gis.spatial.rtree.filter.SearchResults
+//import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
 import org.neo4j.gis.spatial._
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
 import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Expression
