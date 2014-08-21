@@ -138,7 +138,8 @@ trait Operations[T <: PropertyContainer] {
 trait SpatialOperations extends QueryContext {
   def createSimplePointLayer(name: String)
 
-  def getLayer(name:String): Option[Layer]
+  //def getLayer(name:String): Option[Layer]
+  def getLayer(name:String): Layer
 
   def createLayer(name: String, layerType: String)
 
