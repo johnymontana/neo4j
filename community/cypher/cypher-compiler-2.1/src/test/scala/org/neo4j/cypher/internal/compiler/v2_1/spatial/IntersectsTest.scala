@@ -26,7 +26,6 @@ import org.mockito.Mockito
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.QueryStateHelper
 import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
-import org.neo4j.cypher.internal.spi.v2_1.SpatialTransactionBoundQueryContext
 import org.neo4j.graphdb.Node
 import org.scalatest.Assertions
 import org.scalatest.mock.MockitoSugar
@@ -40,7 +39,7 @@ class IntersectsTest extends Assertions with MockitoSugar {
   @Test def givenTwoNodesLogIntersectSearchResults() {
     val node1 = mockedNodeWithXY(1, 15.34, 20.0)
     val node2 = mockedNodeWithXY(2, 15.34, 20.0)
-    val queryContext = mock[SpatialTransactionBoundQueryContext]
+    val queryContext = mock[QueryContext]
 
     val state = QueryStateHelper.emptyWith(query = queryContext)
     val ctx = ExecutionContext() += ("n1" -> node1) += ("n2" -> node2)

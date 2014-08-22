@@ -21,7 +21,7 @@ package org.neo4j.cypher.internal.compiler.v2_1.spatial
 
 import org.mockito.Mockito
 import org.neo4j.cypher.internal.commons.CypherFunSuite
-import org.neo4j.cypher.internal.spi.v2_1.{SpatialTransactionBoundQueryContext, TransactionBoundQueryContext}
+import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
 import org.neo4j.gis.spatial.SpatialDatabaseService
 import org.neo4j.graphdb.Transaction
 import org.neo4j.kernel.api.Statement
@@ -40,14 +40,15 @@ class SpatialTransactionBoundQueryContextTest extends CypherFunSuite with Mockit
   var outerTx: Transaction = null
   var statement: Statement = null
   var spatialService: SpatialDatabaseService = null
-  var context: SpatialTransactionBoundQueryContext = null
+  var context: QueryContext = null
 
   override protected def initTest(){
     graph = new ImpermanentGraphDatabase
     outerTx = mock[Transaction]
     statement = new KernelStatement(mock[KernelTransactionImplementation], null, null, null, null, null, null)
     spatialService = new SpatialDatabaseService(graph)
-    context = new SpatialTransactionBoundQueryContext(graph, spatialService, outerTx, isTopLevelTx = true, statement)
+    //context = new SpatialTransactionBoundQueryContext(graph, spatialService, outerTx, isTopLevelTx = true, statement)
+    context = mock[QueryContext]
   }
 
   test("init SpatialTransactionBoundQueryContent") {
@@ -56,17 +57,17 @@ class SpatialTransactionBoundQueryContextTest extends CypherFunSuite with Mockit
 //    statement = new KernelStatement(mock[KernelTransactionImplementation], null, null, null, null, null, null)
 //    spatialService = new SpatialDatabaseService(graph)
 
-    context.createSimplePointLayer("TestLayer")
+    context.spatialOps.createSimplePointLayer("TestLayer")
 
-    context.getLayer("TestLayer") should not be null
+    context.spatialOps.getLayer("TestLayer") should not be null
 
 
   }
 
   test("create SimplePoint layer") {
-    context.createLayer("TestPointLayer", "SimplePoint")
+    context.spatialOps.createLayer("TestPointLayer", "SimplePoint")
 
-    context.getLayer("TestPointLayer") should not be null
+    context.spatialOps.getLayer("TestPointLayer") should not be null
   }
 
 

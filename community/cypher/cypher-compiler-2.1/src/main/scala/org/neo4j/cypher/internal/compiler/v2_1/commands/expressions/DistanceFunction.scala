@@ -82,10 +82,12 @@ case class DistanceFunction (a:Expression, b:Expression, layerExp:Expression) ex
 
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     //computeDistance(getXYVals(a(ctx)), getXYVals(b(ctx)))
-    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String])
-    //val spatialIndex: SpatialIndexReader = layer.getIndex
-
-    getGeometry(a(ctx), layer).distance(getGeometry(b(ctx), layer))
+    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String]).getOrElse(null)
+    if (layer == null) {
+      0.0
+    } else {
+      getGeometry(a(ctx), layer).distance(getGeometry(b(ctx), layer))
+    }
   }
 
   def rewrite(f: (Expression) => Expression) = f(DistanceFunction(a.rewrite(f), b.rewrite(f), layerExp.rewrite(f)))

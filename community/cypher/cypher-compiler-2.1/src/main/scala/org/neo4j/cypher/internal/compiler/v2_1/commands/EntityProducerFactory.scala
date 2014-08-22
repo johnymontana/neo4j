@@ -62,6 +62,7 @@ class EntityProducerFactory extends GraphElementPropertyFunctions {
   val nodeBySpatialIndex: PartialFunction[(PlanContext, StartItem), EntityProducer[Node]] = {
     case (planContext, startItem @ NodeByIndex(varName, idxName, key, value)) =>
 //      planContext.checkNodeIndex(idxName)
+      //TODO: William started to do something here, so we should finish it with spatial additions to the PlanContext
 
       asProducer[Node](startItem) { (m: ExecutionContext, state: QueryState) =>
           val keyVal = key(m)(state).toString

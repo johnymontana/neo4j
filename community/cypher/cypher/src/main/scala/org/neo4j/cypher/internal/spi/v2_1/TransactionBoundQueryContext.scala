@@ -36,19 +36,19 @@ import org.neo4j.kernel.api.exceptions.schema.{AlreadyConstrainedException, Alre
 import org.neo4j.kernel.api.index.{IndexDescriptor, InternalIndexState}
 import org.neo4j.helpers.collection.IteratorUtil
 import org.neo4j.cypher.internal.compiler.v2_1.spi._
+import org.neo4j.cypher.internal.compiler.v2_1.spi.SpatialOperations
 import org.neo4j.collection.primitive.PrimitiveLongIterator
 import org.neo4j.kernel.impl.core.{NodeManager, ThreadToStatementContextBridge}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
-import org.neo4j.unsafe.batchinsert.SpatialBatchGraphDatabaseService
 
-class TransactionBoundQueryContext(graph: GraphDatabaseAPI, //spatial:SpatialDatabaseService,
+class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
                                          var tx: Transaction,
                                          val isTopLevelTx: Boolean,
                                          var statement: Statement)
   extends TransactionBoundTokenContext(statement) with QueryContext {
 
-  private var open = true
-  private val txBridge = graph.getDependencyResolver.resolveDependency(classOf[ThreadToStatementContextBridge])
+  var open = true
+  val txBridge = graph.getDependencyResolver.resolveDependency(classOf[ThreadToStatementContextBridge])
   private val nodeManager = graph.getDependencyResolver.resolveDependency(classOf[NodeManager])
 
   def isOpen = open
@@ -128,7 +128,7 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI, //spatial:SpatialDat
 
   val relationshipOps = new RelationshipOperations
 
-  val spatialOps = new SpatialOperations
+  val spatialOps = new EmptySpatialOperations
 
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int = labelIds.foldLeft(0) {
     case (count, labelId) =>
@@ -179,16 +179,7 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI, //spatial:SpatialDat
     def isDeleted(obj: Node): Boolean = nodeManager.isDeleted(obj)
   }
 
-  class SpatialOperations {
-    def getLayer(name: String): Option[Layer] = {
-      // do nothing
-     None
-    }
-
-    def createSimplePointLayer(name: String){
-      // do nothing
-    }
-  }
+  class EmptySpatialOperations extends SpatialOperations
 
   class RelationshipOperations extends BaseOperations[Relationship] {
     def delete(obj: Relationship) {

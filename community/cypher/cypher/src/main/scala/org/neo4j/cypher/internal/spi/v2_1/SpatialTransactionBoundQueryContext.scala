@@ -60,17 +60,24 @@ class SpatialTransactionBoundQueryContext(graph: GraphDatabaseAPI, var spatial:S
     }
   }
 
+  //override var spatialOps: SpatialOperations = this
+
   // TODO: Spatial operations, these should probably be moved into a Trait SpatialOperations
-  def getLayer(name:String): Layer = {
-    spatial.getLayer(name)
+  override def getLayer(name:String): Option[Layer] = {
+    var layer: Layer = spatial.getLayer(name)
+    if (layer == null) {
+      return None
+    } else {
+      return Some(layer)
+    }
   }
 
-  def createSimplePointLayer(name:String) = {
+  override def createSimplePointLayer(name:String) = {
     //spatial.getOrCreatePointLayer(name, "x", "y") // FIXME: hardcoded x,y here
     spatial.getOrCreateRegisteredTypeLayer(name, "SimplePoint", null)
   }
 
-  def createLayer(name: String, layerType: String) = {
+  override def createLayer(name: String, layerType: String) = {
     spatial.getOrCreateRegisteredTypeLayer(name, layerType, null)
   }
 

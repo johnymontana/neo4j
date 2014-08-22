@@ -62,7 +62,11 @@ case class IntersectsFunction(a:Expression, b:Expression, layerExp:Expression) e
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     // Assume we have a PointLayer 'Geometry"
     // FIXME: where to get actual layer name
-    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String])
+    val layer: Layer = state.query.spatialOps.getLayer(layerExp(ctx).asInstanceOf[String]).getOrElse(null)
+
+    if (layer == null) {
+      return false
+    }
 
     val spatialIndex: SpatialIndexReader = layer.getIndex
 
