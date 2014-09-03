@@ -58,12 +58,8 @@ case class SpatialAddNodeFunction(a: Expression, b:Expression) extends Expressio
 
     val node: Node = ensureEvalNode(a)
     val layerName: String = ensureEvalString(b)
-    val layer: Layer = state.query.spatialOps.getLayer(layerName).getOrElse(null)
-    if (layer == null) {
-      throw new CypherTypeException("SpatialAddNode did not find the specified Layer")
-    } else {
-      layer.add(node)
-    }
+    val layer: Layer = state.query.getLayer(layerName)
+    layer.add(node)
     node
 
   }

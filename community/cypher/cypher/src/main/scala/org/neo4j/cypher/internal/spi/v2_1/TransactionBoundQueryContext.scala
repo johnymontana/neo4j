@@ -19,7 +19,11 @@
  */
 package org.neo4j.cypher.internal.spi.v2_1
 
-import org.neo4j.gis.spatial.{Layer, SpatialDatabaseService}
+import java.util
+
+import com.vividsolutions.jts.geom.Geometry
+import org.neo4j.gis.spatial.pipes.GeoPipeFlow
+import org.neo4j.gis.spatial._
 import org.neo4j.graphdb._
 import org.neo4j.kernel.{InternalAbstractGraphDatabase, GraphDatabaseAPI}
 import collection.JavaConverters._
@@ -36,7 +40,6 @@ import org.neo4j.kernel.api.exceptions.schema.{AlreadyConstrainedException, Alre
 import org.neo4j.kernel.api.index.{IndexDescriptor, InternalIndexState}
 import org.neo4j.helpers.collection.IteratorUtil
 import org.neo4j.cypher.internal.compiler.v2_1.spi._
-import org.neo4j.cypher.internal.compiler.v2_1.spi.SpatialOperations
 import org.neo4j.collection.primitive.PrimitiveLongIterator
 import org.neo4j.kernel.impl.core.{NodeManager, ThreadToStatementContextBridge}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
@@ -128,8 +131,6 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
 
   val relationshipOps = new RelationshipOperations
 
-  val spatialOps = new EmptySpatialOperations
-
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int = labelIds.foldLeft(0) {
     case (count, labelId) =>
       if (statement.dataWriteOperations().nodeRemoveLabel(node, labelId)) count + 1 else count
@@ -178,8 +179,6 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
 
     def isDeleted(obj: Node): Boolean = nodeManager.isDeleted(obj)
   }
-
-  class EmptySpatialOperations extends SpatialOperations
 
   class RelationshipOperations extends BaseOperations[Relationship] {
     def delete(obj: Relationship) {
@@ -287,4 +286,49 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
     tx = graph.beginTx()
     statement = txBridge.instance()
   }
+
+  // FIXME: instantiate here or is this passed from somewhere (ExecutionEngine?)
+  private val spatial = new SpatialDatabaseService(graph)
+  private val defaultLayer = new DefaultSpatialLayer(spatial)
+
+  // TODO: Spatial operations, these should probably be moved into a Trait SpatialOperations
+  override def getLayer(name:String): Layer = {
+    if (name == null) {
+      return defaultLayer
+    }
+    var layer: Layer = spatial.getLayer(name)
+    if (layer == null) {
+      return defaultLayer
+    } else {
+      return layer
+    }
+  }
+
+  override def createSimplePointLayer(name: String, config: String) = {
+    //spatial.getOrCreatePointLayer(name, "x", "y") // FIXME: hardcoded x,y here
+    spatial.getOrCreateRegisteredTypeLayer(name, "SimplePoint", config)
+  }
+
+  override def createLayer(name: String, layerType: String, config: String) = {
+    spatial.getOrCreateRegisteredTypeLayer(name, layerType, config)
+  }
+
+  def distance(n1: Node, n2: Node, layer: String): Double = {
+    val geomEncoder: GeometryEncoder = spatial.getLayer(layer).getGeometryEncoder
+    geomEncoder.decodeGeometry(n1).distance(geomEncoder.decodeGeometry(n2))
+  }
+
+  def withinDistance(p: Geometry, distance: Float, layerName: String): List[Node] = {
+    val layer: SimplePointLayer = spatial.getLayer(layerName).asInstanceOf[SimplePointLayer]
+    val nodes = new util.ArrayList[Node]
+    /*
+    for(res:GeoPipeFlow <- layer.findClosestPointsTo(p.getCoordinate, distance)) {
+      for(record:SpatialDatabaseRecord <- res.getRecords) {
+        nodes.add(record.getGeomNode)
+      }
+    }*/
+    nodes.asInstanceOf[List[Node]]
+  }
+
+
 }

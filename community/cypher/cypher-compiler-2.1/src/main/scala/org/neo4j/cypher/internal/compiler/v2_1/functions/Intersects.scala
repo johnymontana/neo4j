@@ -20,6 +20,7 @@
 package org.neo4j.cypher.internal.compiler.v2_1.functions
 
 import org.neo4j.cypher.internal.compiler.v2_1._
+import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.{Null, Expression}
 import org.neo4j.cypher.internal.compiler.v2_1.symbols._
 import commands.{expressions => commandexpressions}
 import org.neo4j.cypher.internal.compiler.v2_1.spatial._
@@ -32,14 +33,17 @@ case object Intersects extends Function {
   def name = "intersects"
 
   def semanticCheck(ctx: ast.Expression.SemanticContext, invocation: ast.FunctionInvocation): SemanticCheck =
-    checkMinArgs(invocation, 3) chain
+    checkMinArgs(invocation, 2) chain
       invocation.arguments.expectType(CTAny.covariant) chain
       invocation.specifyType(CTBoolean)
 
-  def asCommandExpression(invocation: ast.FunctionInvocation) =
+  def asCommandExpression(invocation: ast.FunctionInvocation) = {
+    var layerExp: Expression = new Null
+    if (invocation.arguments.length > 2) layerExp = invocation.arguments(2).asCommandExpression
     IntersectsFunction(
       invocation.arguments(0).asCommandExpression,
       invocation.arguments(1).asCommandExpression,
-      invocation.arguments(2).asCommandExpression
+      layerExp
     )
+  }
 }

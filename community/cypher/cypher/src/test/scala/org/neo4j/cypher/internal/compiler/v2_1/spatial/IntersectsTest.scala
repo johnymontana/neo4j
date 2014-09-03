@@ -20,8 +20,6 @@
 package org.neo4j.cypher.internal.compiler.v2_1.spatial
 
 import org.junit.Test
-import org.neo4j.cypher.internal.compiler.v2_1.commands._
-import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions._
 import org.mockito.Mockito
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.QueryStateHelper
@@ -29,7 +27,6 @@ import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
 import org.neo4j.graphdb.Node
 import org.scalatest.Assertions
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.Matchers._
 
 /**
  * Created by lyonwj on 6/18/14.

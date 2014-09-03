@@ -30,7 +30,7 @@ import org.neo4j.cypher.internal.compiler.v2_1.spi.{ExceptionTranslatingQueryCon
 import org.neo4j.cypher.internal.compiler.v2_1.{CypherCompilerFactory => CypherCompilerFactory2_1}
 import org.neo4j.cypher.internal.spi.v1_9.{GDSBackedQueryContext => QueryContext_v1_9}
 import org.neo4j.cypher.internal.spi.v2_0.{TransactionBoundPlanContext => PlanContext_v2_0, TransactionBoundQueryContext => QueryContext_v2_0}
-import org.neo4j.cypher.internal.spi.v2_1.{SpatialTransactionBoundQueryContext, TransactionBoundPlanContext => PlanContext_v2_1, TransactionBoundQueryContext => QueryContext_v2_1}
+import org.neo4j.cypher.internal.spi.v2_1.{TransactionBoundPlanContext => PlanContext_v2_1, TransactionBoundQueryContext => QueryContext_v2_1}
 import org.neo4j.gis.spatial.SpatialDatabaseService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
@@ -149,13 +149,8 @@ class CypherCompiler(graph: GraphDatabaseService,
 class ExecutionPlanWrapperForV2_1(inner: ExecutionPlan_v2_1) extends ExecutionPlan {
 
   private def queryContext(graph: GraphDatabaseAPI, txInfo: TransactionInfo) = {
-    //val ctx = new QueryContext_v2_1(graph, new SpatialDatabaseService(graph), txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
-    val ctx = new SpatialTransactionBoundQueryContext(graph, new SpatialDatabaseService(graph), txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
-    ctx
-    // FIXME: should ExeceptionTranslatingQueryContext implement Spatial Operations?
-    //new ExceptionTranslatingQueryContext_v2_1(ctx)
-    // TODO: Craig suspects we should move the spatial operations into the QueryContext_v2_1 and ExceptionTranslatingQueryContext classes
-    // After first clarifying what should be in the PlanContext and QueryContext interfaces
+    val ctx = new QueryContext_v2_1(graph, txInfo.tx, txInfo.isTopLevelTx, txInfo.statement)
+    new ExceptionTranslatingQueryContext_v2_1(ctx)
   }
 
   def profile(graph: GraphDatabaseAPI, txInfo: TransactionInfo, params: Map[String, Any]) =

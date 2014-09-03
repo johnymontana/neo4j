@@ -20,42 +20,51 @@
 package org.neo4j.cypher.internal.spi.v2_1
 
 import com.vividsolutions.jts.geom.GeometryFactory
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.neo4j.gis.spatial.attributes.PropertyMappingManager
+import org.neo4j.gis.spatial.encoders.SimplePointEncoder
 import org.neo4j.gis.spatial.rtree.Listener
 import org.neo4j.gis.spatial._
 import org.neo4j.graphdb.Node
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
-object DefaultSpatialLayer extends Layer {
-  override def initialize(p1: SpatialDatabaseService, p2: String, p3: Node): Unit = ???
+class DefaultSpatialLayer(val spatial: SpatialDatabaseService) extends Layer {
 
-  override def getDataset: SpatialDataset = ???
+  val name: String = "layer"
+  val geometryFactory: GeometryFactory = new GeometryFactory
+  val geometryEncoder: SimplePointEncoder = new SimplePointEncoder
+  geometryEncoder.setConfiguration("x:y")
 
-  override def getName: String = ???
+  override def initialize(service: SpatialDatabaseService, name: String, node: Node): Unit = {}
 
-  override def getIndex: LayerIndexReader = ???
+  override def getDataset: SpatialDataset = null
 
-  override def getGeometryType: Integer = ???
+  override def getName: String = name
 
-  override def getGeometryFactory: GeometryFactory = ???
+  override def getIndex: LayerIndexReader = null
 
-  override def getGeometryEncoder: GeometryEncoder = ???
+  override def getGeometryType: Integer = Constants.GTYPE_POINT
 
-  override def getStyle: AnyRef = ???
+  override def getGeometryFactory: GeometryFactory = geometryFactory
 
-  override def getLayerNode: Node = ???
+  override def getGeometryEncoder: GeometryEncoder = geometryEncoder
 
-  override def delete(p1: Listener): Unit = ???
+  override def getStyle: AnyRef = null
 
-  override def getPropertyMappingManager: PropertyMappingManager = ???
+  override def getLayerNode: Node = null
 
-  override def getExtraPropertyNames: Array[String] = ???
+  override def delete(listener: Listener) {}
 
-  override def getSpatialDatabase: SpatialDatabaseService = ???
+  override def getPropertyMappingManager: PropertyMappingManager = null
 
-  override def getCoordinateReferenceSystem: CoordinateReferenceSystem = ???
+  override def getExtraPropertyNames: Array[String] = Array[String]()
 
-  override def add(p1: Node): SpatialDatabaseRecord = ???
+  override def getSpatialDatabase: SpatialDatabaseService = spatial
+
+  override def getCoordinateReferenceSystem: CoordinateReferenceSystem = DefaultGeographicCRS.WGS84
+
+  override def add(node: Node): SpatialDatabaseRecord = null
+
 }
 
 

@@ -90,6 +90,14 @@ class TransactionBoundQueryContextTest extends CypherFunSuite {
     tx.finish()
   }
 
+  test("create SimplePoint layer") {
+    val context = new TransactionBoundQueryContext(graph, outerTx, isTopLevelTx = true, statement)
+
+    context.createLayer("TestPointLayer", "SimplePoint", "x:y")
+
+    context.getLayer("TestPointLayer") should not be null
+  }
+
   private def createMiniGraph(relTypeName: String): Node = {
     val relType: DynamicRelationshipType = DynamicRelationshipType.withName(relTypeName)
     val tx = graph.beginTx()

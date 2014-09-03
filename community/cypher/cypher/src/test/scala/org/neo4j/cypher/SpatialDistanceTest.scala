@@ -25,7 +25,7 @@ package org.neo4j.cypher
 class SpatialDistanceTest extends ExecutionEngineFunSuite {
 
   test("test distance with layer"){
-    val result = engine.execute("CREATE (n1:SomeLayer {lat: 32.1, lon: 22.5, name: 'node1'}) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
+    val result = eengine.execute("CREATE (n1:SomeLayer {lat: 32.1, lon: 22.5, name: 'node1'}) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
       "CREATE (n2:SomeLayer {lat: 34.221, lon: 46.221, name: 'node2'}) WITH spatialAddNode(n2, layer) as node2, layer " +
       "CREATE (n3:SomeLayer {lat: 34.221, lon: 46.221, name: 'node3'}) WITH spatialAddNode(n3, layer) as node3, layer, n3 " +
       "CREATE (n4:SomeLayer {lat: 21.341, lon: 96.122, name: 'node4'}) WITH spatialAddNode(n4, layer) as node4, layer, n3 " +

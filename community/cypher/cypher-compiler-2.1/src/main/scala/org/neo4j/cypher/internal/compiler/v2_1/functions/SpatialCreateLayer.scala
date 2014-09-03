@@ -20,6 +20,8 @@
 package org.neo4j.cypher.internal.compiler.v2_1.functions
 
 import org.neo4j.cypher.internal.compiler.v2_1._
+import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.{Null, Expression}
+
 //import org.neo4j.cypher.internal.compiler.v2_1.functions.SpatialCreateLayer._
 import org.neo4j.cypher.internal.compiler.v2_1.spatial.SpatialCreateLayerFunction
 import org.neo4j.cypher.internal.compiler.v2_1.symbols._
@@ -38,10 +40,14 @@ case object SpatialCreateLayer extends Function {
       invocation.arguments.expectType(CTAny.covariant) chain
       invocation.specifyType(CTString)
 
-  def asCommandExpression(invocation: ast.FunctionInvocation) =
+  def asCommandExpression(invocation: ast.FunctionInvocation) = {
+    var configExp: Expression = new Null
+    if (invocation.arguments.length > 2) configExp = invocation.arguments(2).asCommandExpression
     SpatialCreateLayerFunction(
       invocation.arguments(0).asCommandExpression,
-      invocation.arguments(1).asCommandExpression
+      invocation.arguments(1).asCommandExpression,
+      configExp
     )
+  }
 
 }

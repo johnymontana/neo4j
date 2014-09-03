@@ -29,7 +29,7 @@ import org.neo4j.gis.spatial.rtree.filter.SearchResults
 import org.neo4j.cypher.CypherTypeException
 import org.neo4j.gis.spatial._
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
-import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Expression
+import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.{Expression, Null}
 import org.neo4j.cypher.internal.compiler.v2_1.pipes.QueryState
 import org.neo4j.cypher.internal.compiler.v2_1.symbols._
 import org.neo4j.gis.spatial.filter.{SearchRecords, SearchIntersect}
@@ -51,7 +51,7 @@ import scala.collection.JavaConverters._
  * @param a Should evaluate to String (layer name / label)
  * @param b Should evaluate to String (layer type, will make use of RegisteredLayerType)
  */
-case class SpatialCreateLayerFunction(a:Expression, b:Expression) extends Expression {
+case class SpatialCreateLayerFunction(a:Expression, b:Expression, configExp:Expression = new Null) extends Expression {
 
 
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
@@ -66,8 +66,9 @@ case class SpatialCreateLayerFunction(a:Expression, b:Expression) extends Expres
 
     val layerName: String = ensureEvalString(a)
     val layerType: String = ensureEvalString(b)
+    val config: String = configExp(ctx).asInstanceOf[String]
 
-    state.query.spatialOps.createLayer(layerName, layerType)
+    state.query.createLayer(layerName, layerType, config)
     layerName
 
   }

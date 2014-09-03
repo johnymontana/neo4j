@@ -19,6 +19,8 @@
  */
 package org.neo4j.cypher.internal.compiler.v2_1.spi
 
+import com.vividsolutions.jts.geom.Geometry
+import org.neo4j.gis.spatial.Layer
 import org.neo4j.graphdb.{Relationship, PropertyContainer, Direction, Node}
 import org.neo4j.kernel.api.index.IndexDescriptor
 
@@ -58,7 +60,11 @@ class DelegatingQueryContext(inner: QueryContext) extends QueryContext {
 
   def relationshipOps = inner.relationshipOps
 
-  def spatialOps = inner.spatialOps
+
+
+
+
+
 
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int =
     singleDbHit(inner.removeLabelsFromNode(node, labelIds))
@@ -102,6 +108,27 @@ class DelegatingQueryContext(inner: QueryContext) extends QueryContext {
   def getRelTypeName(id: Int): String = singleDbHit(inner.getRelTypeName(id))
 
   override def hasLocalFileAccess: Boolean = inner.hasLocalFileAccess
+
+  /**
+   * Spatial operations
+   */
+  def createSimplePointLayer(name: String, config: String) {
+    inner.createSimplePointLayer(name, config)
+  }
+
+  def getLayer(name: String): Layer = inner.getLayer(name)
+
+  def createLayer(name: String, layerType: String, config: String): Unit = {
+    inner.createLayer(name, layerType, config)
+  }
+
+  override def distance(n1: Node, n2: Node, layer: String): Double = {
+    inner.distance(n1, n2, layer)
+  }
+
+  override def withinDistance(p: Geometry, distance: Float, layer: String): List[Node] = {
+    inner.withinDistance(p, distance, layer)
+  }
 }
 
 class DelegatingOperations[T <: PropertyContainer](protected val inner: Operations[T]) extends Operations[T] {

@@ -19,9 +19,6 @@
  */
 package org.neo4j.cypher.internal.compiler.v2_1.spatial
 
-
-import org.scalatest.Matchers
-
 import org.neo4j.graphdb.{Transaction, GraphDatabaseService, Node}
 import java.util.List
 import org.neo4j.gis.spatial._

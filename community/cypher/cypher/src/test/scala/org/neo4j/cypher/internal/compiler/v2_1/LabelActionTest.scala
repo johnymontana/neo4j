@@ -19,11 +19,13 @@
  */
 package org.neo4j.cypher.internal.compiler.v2_1
 
+import com.vividsolutions.jts.geom.Geometry
 import org.neo4j.cypher.GraphDatabaseFunSuite
 import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.Literal
 import org.neo4j.cypher.internal.compiler.v2_1.commands.values.{KeyToken, TokenType}
 import org.neo4j.cypher.internal.compiler.v2_1.commands.{LabelAction, LabelSetOp}
 import org.neo4j.cypher.internal.compiler.v2_1.spi.{IdempotentResult, LockingQueryContext, QueryContext}
+import org.neo4j.gis.spatial.Layer
 import org.neo4j.graphdb.{Direction, Node}
 import org.neo4j.kernel.api.constraints.UniquenessConstraint
 import org.neo4j.kernel.api.index.IndexDescriptor
@@ -147,4 +149,15 @@ class SnitchingQueryContext extends QueryContext {
   def getOptRelTypeId(relType: String): Option[Int] = ???
 
   def getRelTypeName(id: Int): String = ???
+
+  def createSimplePointLayer(name: String, config: String) = {}
+
+  def getLayer(name:String): Layer = ???
+
+  def createLayer(name: String, layerType: String, config: String) = {}
+
+  def distance(n1: Node, n2: Node, layer: String): Double = ???
+
+  def withinDistance(p: Geometry, distance: Float, layer: String): List[Node] = ???
+
 }
