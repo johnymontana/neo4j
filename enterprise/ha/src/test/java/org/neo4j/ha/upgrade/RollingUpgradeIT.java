@@ -26,6 +26,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.factory.HighlyAvailableGraphDatabaseFactory;
 import org.neo4j.helpers.Pair;
@@ -67,10 +69,11 @@ import static org.neo4j.ha.upgrade.Utils.assembleClassPathFromPackage;
 import static org.neo4j.ha.upgrade.Utils.downloadAndUnpack;
 import static org.neo4j.kernel.ha.HaSettings.ha_server;
 
-//@Ignore( "Keep this test around as it's a very simple and 'close' test to quickly verify rolling upgrades" )
 public class RollingUpgradeIT
 {
     private static final String OLD_VERSION = "2.0.4";
+
+    private static final int CLUSTER_SIZE = 3;
 
     public static final RelationshipType type1 = DynamicRelationshipType.withName( "type1" );
     public static final RelationshipType type2 = DynamicRelationshipType.withName( "type2" );
@@ -181,18 +184,17 @@ public class RollingUpgradeIT
                 DIR.cacheDirectory( "download" ), OLD_VERSION + "-enterprise" );
         String classpath = assembleClassPathFromPackage( oldVersionPackage );
         debug( "Starting " + OLD_VERSION + " cluster in separate jvms" );
-        @SuppressWarnings( "rawtypes" )
-        Future[] legacyDbFutures = new Future[3];
-        for ( int i = 0; i < legacyDbFutures.length; i++ )
+        List<Future<LegacyDatabase>> legacyDbFutures = new ArrayList<>( CLUSTER_SIZE );
+        for ( int i = 0; i < CLUSTER_SIZE; i++ )
         {
-            legacyDbFutures[i] = LegacyDatabaseImpl.start( classpath,
-                    storeDir( i ), config( i ) );
+            Future<LegacyDatabase> dbStart = LegacyDatabaseImpl.start( classpath, storeDir( i ), config( i ) );
+            legacyDbFutures.add( dbStart );
             debug( "  Started " + i );
         }
-        legacyDbs = new LegacyDatabase[legacyDbFutures.length];
-        for ( int i = 0; i < legacyDbFutures.length; i++ )
+        legacyDbs = new LegacyDatabase[CLUSTER_SIZE];
+        for ( int i = 0; i < CLUSTER_SIZE; i++ )
         {
-            legacyDbs[i] = (LegacyDatabase) legacyDbFutures[i].get();
+            legacyDbs[i] = legacyDbFutures.get( i ).get();
         }
 
         for ( LegacyDatabase db : legacyDbs )
@@ -201,9 +203,9 @@ public class RollingUpgradeIT
             db.awaitStarted( 10, TimeUnit.SECONDS );
             debug( "  " + db.getStoreDir() + " fully started" );
         }
-        for ( int i = 0; i < legacyDbs.length; i++ )
+        for ( LegacyDatabase legacyDb : legacyDbs )
         {
-            long node = legacyDbs[i].createNode();
+            long node = legacyDb.createNode();
             for ( LegacyDatabase db : legacyDbs )
             {
                 db.verifyNodeExists( node );
@@ -284,7 +286,7 @@ public class RollingUpgradeIT
         case -1:
             break;
         case -2:
-            debug( "At last master starting, deleteing store so that it fetches from the new master" );
+            debug( "At last master starting, deleting store so that it fetches from the new master" );
             FileUtils.deleteRecursively( storeDirFile );
             break;
         default:
@@ -294,6 +296,8 @@ public class RollingUpgradeIT
             backup( authorativeSlaveId, storeDirFile );
             break;
         }
+
+        startStandaloneDbToRunUpgrade( storeDir, i );
 
         // start that db up in this JVM
         newDbs[i] = (GraphDatabaseAPI) new HighlyAvailableGraphDatabaseFactory()
@@ -330,6 +334,26 @@ public class RollingUpgradeIT
                         newDbs[i].isAvailable( MINUTES.toMillis( 1 ) ) );
                 verifyComplexLoad( newDbs[j], centralNode );
                 debug( "Verified on new db " + j );
+            }
+        }
+    }
+
+    private void startStandaloneDbToRunUpgrade( String storeDir, int dbIndex )
+    {
+        GraphDatabaseService tempDbForUpgrade = null;
+        try
+        {
+            debug( "Starting standalone db " + dbIndex + " to run upgrade" );
+            tempDbForUpgrade = new GraphDatabaseFactory()
+                    .newEmbeddedDatabaseBuilder( storeDir )
+                    .setConfig( GraphDatabaseSettings.allow_store_upgrade, "true" )
+                    .newGraphDatabase();
+        }
+        finally
+        {
+            if ( tempDbForUpgrade != null )
+            {
+                tempDbForUpgrade.shutdown();
             }
         }
     }

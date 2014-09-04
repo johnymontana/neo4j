@@ -19,13 +19,6 @@
  */
 package org.neo4j.kernel.impl.storemigration.legacystore.v19;
 
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.NeoStoreCommand;
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.NodeCommand;
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.PropertyCommand;
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.PropertyKeyTokenCommand;
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.RelationshipCommand;
-import static org.neo4j.kernel.impl.nioneo.xa.command.Command.RelationshipTypeTokenCommand;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -41,14 +34,21 @@ import org.neo4j.kernel.impl.nioneo.store.Record;
 import org.neo4j.kernel.impl.nioneo.store.RelationshipRecord;
 import org.neo4j.kernel.impl.nioneo.store.RelationshipTypeTokenRecord;
 import org.neo4j.kernel.impl.nioneo.xa.command.Command;
+import org.neo4j.kernel.impl.storemigration.legacystore.LegacyLogIoUtil;
+import org.neo4j.kernel.impl.transaction.xaframework.XaCommand;
 
-/**
- * Reads log files from legacy (1.9) stores, and produces current (2.0) command objects from them.
- */
-public class LegacyCommandReader
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.NeoStoreCommand;
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.NodeCommand;
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.PropertyCommand;
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.PropertyKeyTokenCommand;
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.RelationshipCommand;
+import static org.neo4j.kernel.impl.nioneo.xa.command.Command.RelationshipTypeTokenCommand;
+
+// most of the code has been copied from  org.neo4j.kernel.impl.nioneo.xa.Command
+public class Legacy19CommandReader implements LegacyLogIoUtil.CommandReader
 {
-    static PropertyBlock readPropertyBlock( ReadableByteChannel byteChannel,
-                                            ByteBuffer buffer ) throws IOException
+    private static PropertyBlock readPropertyBlock( ReadableByteChannel byteChannel,
+                                                    ByteBuffer buffer ) throws IOException
     {
         PropertyBlock toReturn = new PropertyBlock();
         buffer.clear();
@@ -116,7 +116,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    static DynamicRecord readDynamicRecord( ReadableByteChannel byteChannel,
+    private static DynamicRecord readDynamicRecord( ReadableByteChannel byteChannel,
                                             ByteBuffer buffer ) throws IOException
     {
         // id+type+in_use(byte)+nr_of_bytes(int)+next_block(long)
@@ -195,7 +195,7 @@ public class LegacyCommandReader
     private static final byte PROP_INDEX_COMMAND = (byte) 5;
     private static final byte NEOSTORE_COMMAND = (byte) 6;
 
-    public static Command readNodeCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
+    private static Command readNodeCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
             throws IOException
     {
         buffer.clear();
@@ -235,7 +235,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readRelationshipCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
+    private static Command readRelationshipCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
             throws IOException
     {
         buffer.clear();
@@ -287,7 +287,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readNeoStoreCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
+    private static Command readNeoStoreCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
             throws IOException
     {
         buffer.clear();
@@ -302,7 +302,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readPropertyIndexCommand( ReadableByteChannel byteChannel, ByteBuffer buffer ) throws IOException
+    private static Command readPropertyIndexCommand( ReadableByteChannel byteChannel, ByteBuffer buffer ) throws IOException
     {
         // id+in_use(byte)+count(int)+key_blockId(int)+nr_key_records(int)
         buffer.clear();
@@ -343,7 +343,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readPropertyCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
+    private static Command readPropertyCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
             throws IOException
     {
         // id+in_use(byte)+type(int)+key_indexId(int)+prop_blockId(long)+
@@ -436,7 +436,7 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readRelationshipTypeCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
+    private static Command readRelationshipTypeCommand( ReadableByteChannel byteChannel, ByteBuffer buffer )
             throws IOException
     {
         // id+in_use(byte)+type_blockId(int)+nr_type_records(int)
@@ -477,7 +477,8 @@ public class LegacyCommandReader
         return toReturn;
     }
 
-    public static Command readCommand( ReadableByteChannel byteChannel, ByteBuffer buffer ) throws IOException
+    @Override
+    public XaCommand readCommand( ReadableByteChannel byteChannel, ByteBuffer buffer ) throws IOException
     {
         buffer.clear();
         buffer.limit( 1 );

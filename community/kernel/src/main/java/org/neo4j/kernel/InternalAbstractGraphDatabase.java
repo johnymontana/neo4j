@@ -122,6 +122,7 @@ import org.neo4j.kernel.impl.locking.LockService;
 import org.neo4j.kernel.impl.locking.Locks;
 import org.neo4j.kernel.impl.locking.ResourceTypes;
 import org.neo4j.kernel.impl.locking.community.CommunityLockManger;
+import org.neo4j.kernel.impl.locking.ReentrantLockService;
 import org.neo4j.kernel.impl.nioneo.store.DefaultWindowPoolFactory;
 import org.neo4j.kernel.impl.nioneo.store.FileSystemAbstraction;
 import org.neo4j.kernel.impl.nioneo.store.NeoStore;
@@ -136,6 +137,7 @@ import org.neo4j.kernel.impl.storemigration.StoreMigrator;
 import org.neo4j.kernel.impl.storemigration.StoreUpgrader;
 import org.neo4j.kernel.impl.storemigration.StoreVersionCheck;
 import org.neo4j.kernel.impl.storemigration.UpgradableDatabase;
+import org.neo4j.kernel.impl.storemigration.UpgradeConfiguration;
 import org.neo4j.kernel.impl.storemigration.monitoring.VisibleMigrationProgressMonitor;
 import org.neo4j.kernel.impl.transaction.AbstractTransactionManager;
 import org.neo4j.kernel.impl.transaction.KernelHealth;
@@ -211,6 +213,8 @@ public abstract class InternalAbstractGraphDatabase
 
         Iterable<TransactionInterceptorProvider> transactionInterceptorProviders();
     }
+
+    private LockService locks;
 
     public static class Configuration
     {
@@ -441,7 +445,7 @@ public abstract class InternalAbstractGraphDatabase
         // Component monitoring
         this.monitors = createMonitors();
 
-        storeMigrationProcess = new StoreUpgrader( new ConfigMapUpgradeConfiguration( config ), fileSystem,
+        storeMigrationProcess = new StoreUpgrader( createUpgradeConfiguration(), fileSystem,
                 monitors.newMonitor( StoreUpgrader.Monitor.class ) );
 
         // Apply autoconfiguration for memory settings
@@ -564,10 +568,11 @@ public abstract class InternalAbstractGraphDatabase
         Cache<RelationshipImpl> relCache = diagnosticsManager.tryAppendProvider( caches.relationship() );
 
         statementContextProvider = life.add( new ThreadToStatementContextBridge( persistenceManager ) );
+        locks = new ReentrantLockService();
 
         nodeManager = guard != null ?
-                createGuardedNodeManager( readOnly, cacheProvider, nodeCache, relCache ) :
-                createNodeManager( readOnly, cacheProvider, nodeCache, relCache );
+                createGuardedNodeManager( readOnly, locks, cacheProvider, nodeCache, relCache ) :
+                createNodeManager( readOnly, locks, cacheProvider, nodeCache, relCache );
 
         transactionEventHandlers = new TransactionEventHandlers( createNodeLookup(), createRelationshipLookups(),
                 statementContextProvider  );
@@ -601,7 +606,7 @@ public abstract class InternalAbstractGraphDatabase
                 monitors, logging, recoveryVerifier, LogPruneStrategies.fromConfigValue(
                 fileSystem, keepLogicalLogsConfig ), kernelHealth );
 
-        createNeoDataSource();
+        createNeoDataSource( locks );
 
         life.add( new MonitorGc( config, msgLog ) );
 
@@ -614,6 +619,11 @@ public abstract class InternalAbstractGraphDatabase
 
         // TODO This is probably too coarse-grained and we should have some strategy per user of config instead
         life.add( new ConfigurationChangedRestarter() );
+    }
+
+    protected UpgradeConfiguration createUpgradeConfiguration()
+    {
+        return new ConfigMapUpgradeConfiguration( config );
     }
 
     protected Monitors createMonitors()
@@ -673,30 +683,31 @@ public abstract class InternalAbstractGraphDatabase
         return new DefaultLabelIdCreator( logging );
     }
 
-    private NodeManager createNodeManager( final boolean readOnly, final CacheProvider cacheType,
+    private NodeManager createNodeManager( final boolean readOnly, LockService locks, final CacheProvider cacheType,
                                            Cache<NodeImpl> nodeCache, Cache<RelationshipImpl> relCache )
     {
         if ( readOnly )
         {
-            return new ReadOnlyNodeManager( logging.getMessagesLog( NodeManager.class ), this, txManager, persistenceManager,
+            return new ReadOnlyNodeManager( logging.getMessagesLog( NodeManager.class ), this, locks, txManager, persistenceManager,
                     persistenceSource, relationshipTypeTokenHolder, cacheType, propertyKeyTokenHolder, labelTokenHolder,
                     createNodeLookup(), createRelationshipLookups(), nodeCache, relCache, xaDataSourceManager,
                     statementContextProvider );
         }
 
         return new NodeManager(
-                logging.getMessagesLog( NodeManager.class ), this, txManager, persistenceManager,
+                logging.getMessagesLog( NodeManager.class ), this, locks, txManager, persistenceManager,
                 persistenceSource, relationshipTypeTokenHolder, cacheType, propertyKeyTokenHolder, labelTokenHolder,
                 createNodeLookup(), createRelationshipLookups(), nodeCache, relCache, xaDataSourceManager,
                 statementContextProvider );
     }
 
-    private NodeManager createGuardedNodeManager( final boolean readOnly, final CacheProvider cacheType,
+    private NodeManager createGuardedNodeManager( final boolean readOnly, LockService locks,
+                                                  final CacheProvider cacheType,
                                                   Cache<NodeImpl> nodeCache, Cache<RelationshipImpl> relCache )
     {
         if ( readOnly )
         {
-            return new ReadOnlyNodeManager( logging.getMessagesLog( NodeManager.class ), this, txManager, persistenceManager,
+            return new ReadOnlyNodeManager( logging.getMessagesLog( NodeManager.class ), this, locks, txManager, persistenceManager,
                     persistenceSource, relationshipTypeTokenHolder, cacheType, propertyKeyTokenHolder, labelTokenHolder, createNodeLookup(),
                     createRelationshipLookups(), nodeCache, relCache, xaDataSourceManager, statementContextProvider )
             {
@@ -745,7 +756,7 @@ public abstract class InternalAbstractGraphDatabase
             };
         }
 
-        return new NodeManager( logging.getMessagesLog( NodeManager.class ), this, txManager, persistenceManager,
+        return new NodeManager( logging.getMessagesLog( NodeManager.class ), this, locks, txManager, persistenceManager,
                 persistenceSource, relationshipTypeTokenHolder, cacheType, propertyKeyTokenHolder, labelTokenHolder, createNodeLookup(),
                 createRelationshipLookups(), nodeCache, relCache, xaDataSourceManager, statementContextProvider )
         {
@@ -968,11 +979,10 @@ public abstract class InternalAbstractGraphDatabase
         return life.add( DefaultLogging.createDefaultLogging( config ) );
     }
 
-    protected void createNeoDataSource()
+    protected void createNeoDataSource( LockService locks )
     {
         // Create DataSource
-
-        neoDataSource = new NeoStoreXaDataSource( config,
+        neoDataSource = new NeoStoreXaDataSource( config, locks,
                 storeFactory, logging.getMessagesLog( NeoStoreXaDataSource.class ),
                 xaFactory, stateFactory, transactionInterceptorProviders, jobScheduler, logging,
                 updateableSchemaState, new NonTransactionalTokenNameLookup( labelTokenHolder, propertyKeyTokenHolder ),
@@ -1320,11 +1330,10 @@ public abstract class InternalAbstractGraphDatabase
                 // Locks used to ensure pessimistic concurrency control between transactions
                 return type.cast( lockManager );
             }
-            else if ( LockService.class.isAssignableFrom( type )
-                    && type.isInstance( neoDataSource.getLockService() ) )
+            else if ( LockService.class.isAssignableFrom( type ) && type.isInstance( locks ) )
             {
                 // Locks used to control concurrent access to the store files
-                return type.cast( neoDataSource.getLockService() );
+                return type.cast( locks );
             }
             else if( StoreFactory.class.isAssignableFrom( type ) && type.isInstance( storeFactory ) )
             {
@@ -1490,6 +1499,10 @@ public abstract class InternalAbstractGraphDatabase
             {
                 return type.cast( storeMigrationProcess );
             }
+            else if ( StoreId.class.isAssignableFrom( type ) )
+            {
+                return type.cast( storeId );
+            }
             else if ( AvailabilityGuard.class.isAssignableFrom( type ) )
             {
                 return (T) availabilityGuard;
@@ -1604,36 +1617,6 @@ public abstract class InternalAbstractGraphDatabase
     }
 
     private IndexDescriptor findAnyIndexByLabelAndProperty( ReadOperations readOps, int propertyId, int labelId )
-    {
-        IndexDescriptor descriptor = findUniqueIndexByLabelAndProperty( readOps, labelId, propertyId );
-
-        if ( null == descriptor )
-        {
-            descriptor = findRegularIndexByLabelAndProperty( readOps, labelId, propertyId );
-        }
-        return descriptor;
-    }
-
-    private IndexDescriptor findUniqueIndexByLabelAndProperty( ReadOperations readOps, int labelId, int propertyId )
-    {
-        try
-        {
-            IndexDescriptor descriptor = readOps.indexesGetForLabelAndPropertyKey( labelId, propertyId );
-
-            if ( readOps.indexGetState( descriptor ) == InternalIndexState.ONLINE )
-            {
-                // Ha! We found an index - let's use it to find matching nodes
-                return descriptor;
-            }
-        }
-        catch ( SchemaRuleNotFoundException | IndexNotFoundKernelException e )
-        {
-            // If we don't find a matching index rule, we'll scan all nodes and filter manually (below)
-        }
-        return null;
-    }
-
-    private IndexDescriptor findRegularIndexByLabelAndProperty( ReadOperations readOps, int labelId, int propertyId )
     {
         try
         {

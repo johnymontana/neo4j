@@ -5,17 +5,17 @@
  * This file is part of Neo4j.
  *
  * Neo4j is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.neo4j.consistency.checking;
 
@@ -668,6 +668,61 @@ public class PropertyRecordCheckTest
 
         // then
         verify( report ).ownerDoesNotReferenceBack();
+        verifyNoMoreInteractions( report );
+    }
+
+    @Test
+    public void shouldNotReportMissingPropertyForDeletedNodeWithProperty()
+    {
+        // given
+        PropertyRecord oldProperty = add( inUse( new PropertyRecord( 10 ) ) );
+        NodeRecord oldNode = add( inUse( new NodeRecord( 20, false, 0, 0 ) ) );
+        oldProperty.setNodeId( oldNode.getId() );
+        oldNode.setNextProp( oldProperty.getId() );
+
+        PropertyRecord newProperty = add( notInUse( new PropertyRecord( 10 ) ) );
+        NodeRecord newNode = add( notInUse( new NodeRecord( 20, false, 0, 0 ) ) );
+        newProperty.setNodeId( newNode.getId() );
+        newNode.setNextProp( newProperty.getId() );
+
+        // when
+        ConsistencyReport.PropertyConsistencyReport report = checkChange( oldProperty, newProperty );
+
+        // then
+        verifyNoMoreInteractions( report );
+    }
+
+    @Test
+    public void shouldNotReportMissingPropertyForDeletedRelationshipWithProperty()
+    {
+        // given
+        NodeRecord oldNode1 = add( inUse( new NodeRecord( 1, false, NONE, NONE ) ) );
+        NodeRecord oldNode2 = add( inUse( new NodeRecord( 2, false, NONE, NONE ) ) );
+
+        RelationshipRecord oldRel = add( inUse( new RelationshipRecord( 42, 1, 2, 7 ) ) );
+        oldNode1.setNextRel( oldRel.getId() );
+        oldNode2.setNextRel( oldRel.getId() );
+
+        PropertyRecord oldProperty = add( inUse( new PropertyRecord( 101 ) ) );
+        oldProperty.setRelId( oldRel.getId() );
+        oldRel.setNextProp( oldProperty.getId() );
+
+
+        NodeRecord newNode1 = add( notInUse( new NodeRecord( 1, false, NONE, NONE ) ) );
+        NodeRecord newNode2 = add( notInUse( new NodeRecord( 2, false, NONE, NONE ) ) );
+
+        RelationshipRecord newRel = add( notInUse( new RelationshipRecord( 42, 1, 2, 7 ) ) );
+        newNode1.setNextRel( newRel.getId() );
+        newNode2.setNextRel( newRel.getId() );
+
+        PropertyRecord newProperty = add( notInUse( new PropertyRecord( 101 ) ) );
+        newProperty.setRelId( newRel.getId() );
+        newRel.setNextProp( newProperty.getId() );
+
+        // when
+        ConsistencyReport.PropertyConsistencyReport report = checkChange( oldProperty, newProperty );
+
+        // then
         verifyNoMoreInteractions( report );
     }
 }
