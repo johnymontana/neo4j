@@ -44,14 +44,14 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator
 import org.neo4j.kernel.impl.core.{NodeManager, ThreadToStatementContextBridge}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 
-class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
+final class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
                                          var tx: Transaction,
                                          val isTopLevelTx: Boolean,
                                          var statement: Statement)
   extends TransactionBoundTokenContext(statement) with QueryContext {
 
-  var open = true
-  val txBridge = graph.getDependencyResolver.resolveDependency(classOf[ThreadToStatementContextBridge])
+  private var open = true
+  private val txBridge = graph.getDependencyResolver.resolveDependency(classOf[ThreadToStatementContextBridge])
   private val nodeManager = graph.getDependencyResolver.resolveDependency(classOf[NodeManager])
 
   def isOpen = open
@@ -287,13 +287,18 @@ class TransactionBoundQueryContext(graph: GraphDatabaseAPI,
     statement = txBridge.instance()
   }
 
-  // FIXME: instantiate here or is this passed from somewhere (ExecutionEngine?)
+  // FIXME: William: instantiate here or is this passed from somewhere (ExecutionEngine?)
   private val spatial = new SpatialDatabaseService(graph)
   private val defaultLayer = new DefaultSpatialLayer(spatial)
 
-  // TODO: Spatial operations, these should probably be moved into a Trait SpatialOperations
-  override def getLayer(name:String): Layer = {
+  override def getLayer(name:String, node: Node = null): Layer = {
     if (name == null) {
+      if (node != null) {
+        for (label: Label <- node.getLabels.asScala) {
+          var layer: Layer = spatial.getLayer(label.name())
+          if (layer != null) return layer
+        }
+      }
       return defaultLayer
     }
     var layer: Layer = spatial.getLayer(name)

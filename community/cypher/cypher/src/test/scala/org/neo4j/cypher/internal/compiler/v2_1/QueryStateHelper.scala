@@ -40,6 +40,5 @@ object QueryStateHelper {
     emptyWith(db = db, query = context)
   }
 
-  //def countStats(q: QueryState) = q.copy(query = new UpdateCountingQueryContext(q.query))
-  def countStats(q: QueryState) = q.copy(query=q.query)
+  def countStats(q: QueryState) = q.copy(query = new UpdateCountingQueryContext(q.query))
 }

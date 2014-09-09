@@ -73,9 +73,9 @@ case class SpatialCreateLayerFunction(a:Expression, b:Expression, configExp:Expr
 
   }
 
-  def arguments = Seq(a, b)
+  def arguments = Seq(a, b, configExp)
 
-  def rewrite(f: (Expression) => Expression) = f(SpatialCreateLayerFunction(a.rewrite(f), b.rewrite(f)))
+  def rewrite(f: (Expression) => Expression) = f(SpatialCreateLayerFunction(a.rewrite(f), b.rewrite(f), configExp.rewrite(f)))
 
   def symbolTableDependencies = a.symbolTableDependencies   // FIXME: add b symbolTableDependencies ( +)
 

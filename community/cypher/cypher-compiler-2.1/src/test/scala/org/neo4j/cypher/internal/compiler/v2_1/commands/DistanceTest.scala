@@ -78,8 +78,6 @@ class DistanceTest extends CypherFunSuite {
     result.asInstanceOf[Double] should be (11.03 +- 0.01)
   }
 
-  private def calc(e: Expression): Any = e(ExecutionContext.empty)(QueryStateHelper.empty)
-
   /**
    * Configure the mocks to behave like the real simple point layer
    */
@@ -89,7 +87,7 @@ class DistanceTest extends CypherFunSuite {
     val layer: Layer = mock[Layer]
     val geometryEncoder = new SimplePointEncoder
     geometryEncoder.setConfiguration(config)
-    when(queryContext.getLayer(name)).thenReturn(layer)
+    when(queryContext.getLayer(name,null)).thenReturn(layer)
     when(layer.getGeometryEncoder).thenReturn(geometryEncoder)
     state
   }

@@ -59,10 +59,17 @@ case class DistanceFunction (a:Expression, b:Expression, layerExp:Expression = n
     }
   }
 
+  def getNode(a: Any): Node = {
+    a match {
+      case n: Node => n
+      case _ => null
+    }
+  }
+
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
     //computeDistance(getXYVals(a(ctx)), getXYVals(b(ctx)))
     val name: String = layerExp(ctx).asInstanceOf[String]
-    val layer: Layer = state.query.getLayer(name)
+    val layer: Layer = state.query.getLayer(name, getNode(a))
     getGeometry(a(ctx), layer).distance(getGeometry(b(ctx), layer))
   }
 

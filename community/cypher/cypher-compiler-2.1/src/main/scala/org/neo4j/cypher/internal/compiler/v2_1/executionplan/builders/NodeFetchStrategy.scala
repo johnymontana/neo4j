@@ -90,7 +90,7 @@ trait NodeStrategy {
   case class SolvedPredicate[+T](solution: T, predicate: Predicate)
 }
 
-object NodeByIdStrategy extends NodeStrategy { // MATCH n, x WHERE id(n) = 12
+object NodeByIdStrategy extends NodeStrategy {
 
   def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] = {
     val solvedPredicates: Seq[SolvedPredicate[Expression]] = findEqualityPredicatesForBoundIdentifiers(node, symbols, where)
@@ -156,11 +156,6 @@ object GlobalStrategy extends NodeStrategy {
   def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] =
     Seq(RatedStartItem(AllNodes(node), Global, Seq.empty))
 }
-
-//object SpatialStrategy extends NodeStrategy {
-//  def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] =
-//    Seq(RatedStartItem())
-//}
 
 object LabelScanStrategy extends NodeStrategy {
   def findRatedStartItems(node: String, where: Seq[Predicate], ctx: PlanContext, symbols: SymbolTable): Seq[RatedStartItem] = {

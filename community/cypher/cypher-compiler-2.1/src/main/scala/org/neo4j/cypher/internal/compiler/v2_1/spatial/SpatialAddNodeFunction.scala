@@ -58,7 +58,7 @@ case class SpatialAddNodeFunction(a: Expression, b:Expression) extends Expressio
 
     val node: Node = ensureEvalNode(a)
     val layerName: String = ensureEvalString(b)
-    val layer: Layer = state.query.getLayer(layerName)
+    val layer: Layer = state.query.getLayer(layerName, node)
     layer.add(node)
     node
 

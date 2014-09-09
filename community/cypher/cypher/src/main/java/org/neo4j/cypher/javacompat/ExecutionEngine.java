@@ -57,7 +57,7 @@ public class ExecutionEngine
     protected
     org.neo4j.cypher.ExecutionEngine createInnerEngine( GraphDatabaseService database, StringLogger logger )
     {
-        return new org.neo4j.cypher.ExecutionEngine( database, logger, scala.Option.<SpatialDatabaseService>apply(null) );
+        return new org.neo4j.cypher.ExecutionEngine( database, logger );
     }
 
     /**

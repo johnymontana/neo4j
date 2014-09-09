@@ -27,6 +27,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import com.vividsolutions.jts.geom.{Envelope, Coordinate}
 import org.neo4j.cypher.internal.commons.CypherFunSuite
 import org.neo4j.gis.spatial.pipes.GeoPipeline
+import org.neo4j.test.ImpermanentGraphDatabase
 
 
 /** SpatialCypher tests
@@ -34,19 +35,39 @@ import org.neo4j.gis.spatial.pipes.GeoPipeline
   */
 class SpatialCypherTest extends CypherFunSuite {
 
-  var graphDb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder("target/var/graph-db").newGraphDatabase
-  var db: SpatialDatabaseService = new SpatialDatabaseService(graphDb)
+  var graph: GraphDatabaseService = null
+  var db: SpatialDatabaseService = null
 
+  override def beforeEach() {
+    super.beforeEach ()
+    graph = new ImpermanentGraphDatabase
+    db = new SpatialDatabaseService(graph)
+  }
 
   test("testBasicLayerOperations") {
 
+    println("Before first test")
+    for(name: String <- db.getLayerNames) {
+      println(name)
+    }
+
+
     val layer: Layer = db.getOrCreateEditableLayer("test")
     layer should not be null
+
+    println("After first test")
+    for(name: String <- db.getLayerNames) {
+      println(name)
+    }
 
   }
 
   test("test simple point layer") {
 
+    println("Before second test")
+    for(name: String <- db.getLayerNames) {
+      println(name)
+    }
 
 
     val layer: EditableLayer = db.createSimplePointLayer("testPointLayer", "Longitude", "Latitude").asInstanceOf[EditableLayer]
@@ -55,7 +76,7 @@ class SpatialCypherTest extends CypherFunSuite {
     val record: SpatialRecord = layer.add(layer.getGeometryFactory.createPoint(new Coordinate(15.3, 56.2)))
     record should not be null //assertNotNull(record)
 
-    val tx: Transaction = graphDb.beginTx()
+    val tx: Transaction = graph.beginTx()
     try {
       var results: List[SpatialDatabaseRecord] = GeoPipeline.startContainSearch(layer, layer.getGeometryFactory.toGeometry(new Envelope(15.0, 16.0, 56.0, 57.0))).toSpatialDatabaseRecordList
 

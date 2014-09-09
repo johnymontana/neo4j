@@ -48,7 +48,8 @@ class SpatialCreateAddTest extends ExecutionEngineFunSuite {
   }
 
   test("test create layer, add node and intersects with WKT") {
-    val result = eengine.execute("CREATE (n1:SomeLayer) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
+    val result = eengine.execute("CREATE (n1:SomeLayer {lat: 18.341, lon: 101.122, name: 'node1'}) " +
+      "WITH n1, spatialCreateLayer('SomeLayer','SimplePoint','lon:lat') as layer WITH spatialAddNode(n1,layer) as node1, layer " +
       "CREATE (n2:SomeLayer {lat: 34.221, lon: 46.221, name: 'node2'}) WITH spatialAddNode(n2, layer) as node2, layer " +
       "CREATE (n3:SomeLayer {lat: 34.221, lon: 46.221, name: 'node3'}) WITH spatialAddNode(n3, layer) as node3, layer " +
       "CREATE (n4:SomeLayer {lat: 21.341, lon: 96.122, name: 'node4'}) WITH spatialAddNode(n4, layer) as node4, layer " +
@@ -58,7 +59,8 @@ class SpatialCreateAddTest extends ExecutionEngineFunSuite {
   }
 
   test("test create layer, add node and intersects with Node") {
-    val result = eengine.execute("CREATE (n1:SomeLayer) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
+    val result = eengine.execute("CREATE (n1:SomeLayer {lat: 18.341, lon: 101.122, name: 'node1'}) " +
+      "WITH n1, spatialCreateLayer('SomeLayer','SimplePoint','lon:lat') as layer WITH spatialAddNode(n1,layer) as node1, layer " +
       "CREATE (n2:SomeLayer {lat: 34.221, lon: 46.221, name: 'node2'}) WITH spatialAddNode(n2, layer) as node2, layer " +
       "CREATE (n3:SomeLayer {lat: 34.221, lon: 46.221, name: 'node3'}) WITH spatialAddNode(n3, layer) as node3, layer, n3 " +
       "CREATE (n4:SomeLayer {lat: 21.341, lon: 96.122, name: 'node4'}) WITH spatialAddNode(n4, layer) as node4, layer, n3 " +

@@ -104,7 +104,7 @@ trait QueryContext extends TokenContext {
    */
   def createSimplePointLayer(name: String, config: String)
 
-  def getLayer(name:String): Layer
+  def getLayer(name: String, node: Node): Layer
 
   def createLayer(name: String, layerType: String, config: String)
 

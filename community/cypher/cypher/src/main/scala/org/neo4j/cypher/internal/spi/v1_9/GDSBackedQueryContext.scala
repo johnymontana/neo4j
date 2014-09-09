@@ -45,6 +45,7 @@ class GDSBackedQueryContext(graph: GraphDatabaseService) extends QueryContext {
       node.getRelationships(dir, types.map(withName): _*).asScala
     }
 
+
   def nodeOps: Operations[Node] = {
     new Operations[Node] {
       def delete(obj: Node) {

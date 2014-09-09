@@ -17,13 +17,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.neo4j.cypher.internal.compiler.v2_1.spatial
+package org.neo4j.cypher.internal.compiler.v2_1.commands
 
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito._
+import org.neo4j.cypher.internal.commons.CypherFunSuite
 import org.neo4j.cypher.internal.compiler.v2_1.ExecutionContext
-import org.neo4j.cypher.internal.compiler.v2_1.pipes.QueryStateHelper
+import org.neo4j.cypher.internal.compiler.v2_1.commands.expressions.{Literal, DistanceFunction, Identifier}
+import org.neo4j.cypher.internal.compiler.v2_1.pipes.{QueryState, QueryStateHelper}
+import org.neo4j.cypher.internal.compiler.v2_1.spatial.IntersectsFunction
 import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
+import org.neo4j.gis.spatial.Layer
+import org.neo4j.gis.spatial.encoders.SimplePointEncoder
 import org.neo4j.graphdb.Node
 import org.scalatest.Assertions
 import org.scalatest.mock.MockitoSugar
@@ -31,24 +37,38 @@ import org.scalatest.mock.MockitoSugar
 /**
  * Created by lyonwj on 6/18/14.
  */
-class IntersectsTest extends Assertions with MockitoSugar {
+class IntersectsTest extends CypherFunSuite {
 
-  @Test def givenTwoNodesLogIntersectSearchResults() {
+  test("givenTwoNodesLogIntersectSearchResults") {
     val node1 = mockedNodeWithXY(1, 15.34, 20.0)
     val node2 = mockedNodeWithXY(2, 15.34, 20.0)
-    val queryContext = mock[QueryContext]
-
-    val state = QueryStateHelper.emptyWith(query = queryContext)
+    val state = mockedQueryStateWithSimplePointLayer("layer", "x:y", Set(node1, node2))
     val ctx = ExecutionContext() += ("n1" -> node1) += ("n2" -> node2)
 
-   // val result = IntersectsFunction(Identifier("n1"), Identifier("n2"))(ctx)(state)
+    val result = IntersectsFunction(Identifier("n1"), Identifier("n2"), Literal("layer"))(ctx)(state)
 
-   // println(result)
+    println(result)
 
-    //result should not be empty
+    result.asInstanceOf[Boolean] should be (true)
 
+    //result.asInstanceOf[boolean] should be true
+  }
 
-
+  /**
+   * Configure the mocks to behave like the real simple point layer
+   */
+  private def mockedQueryStateWithSimplePointLayer(name: String, config: String, nodes: Set[Node]): QueryState = {
+    val queryContext = mock[QueryContext]
+    val state = QueryStateHelper.emptyWith(query = queryContext)
+    val layer: Layer = mock[Layer]
+    val geometryEncoder = new SimplePointEncoder
+    geometryEncoder.setConfiguration(config)
+    when(queryContext.getLayer(name,null)).thenReturn(layer)
+    for(node <- nodes) {
+      when(queryContext.getLayer(name,node)).thenReturn(layer)
+    }
+    when(layer.getGeometryEncoder).thenReturn(geometryEncoder)
+    state
   }
 
   /** Mock Node with x, y attributes

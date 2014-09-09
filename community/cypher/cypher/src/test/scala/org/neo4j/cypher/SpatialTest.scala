@@ -110,20 +110,21 @@ class SpatialTest extends ExecutionEngineFunSuite {
   }
 
   test("test spatialAddNode func 2") {
-    val result = eengine.execute("CREATE (n1:SomeLayer) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
-      "CREATE (n2:SomeLayer {lat: 34.221, lon: 46.221, name: 'someNode'}) WITH spatialAddNode(n2, layer) as node " +
+    val result = eengine.execute("CREATE (n1:SomeLayerX) WITH spatialCreateLayer('SomeLayerX','SimplePoint') as layer " +
+      "CREATE (n2:SomeLayerX {lat: 34.221, lon: 46.221, name: 'someNode'}) WITH spatialAddNode(n2, layer) as node " +
       "RETURN node.name as n")
     result.toList should equal(List(Map("n"->"someNode")))
   }
 
   test("test create layer, add node and intersects") {
-    val result = eengine.execute("CREATE (n1:SomeLayer) WITH spatialCreateLayer('SomeLayer','SimplePoint') as layer " +
-      "CREATE (n2:SomeLayer {lat: 34.221, lon: 46.221, name: 'node2'}) WITH spatialAddNode(n2, layer) as node2, layer " +
-      "CREATE (n3:SomeLayer {lat: 34.221, lon: 46.221, name: 'node3'}) WITH spatialAddNode(n3, layer) as node3, layer " +
-      "CREATE (n4:SomeLayer {lat: 21.341, lon: 96.122, name: 'node4'}) WITH spatialAddNode(n4, layer) as node4, layer " +
-      "MATCH (n:SomeLayer) WHERE Intersects(n, 'POINT(46.221 34.221)') RETURN n.name as n")
+    val result = eengine.execute("CREATE (n1:SomeLayerX {lat: 18.341, lon: 101.122, name: 'node1'}) " +
+      "WITH n1, spatialCreateLayer('SomeLayerX','SimplePoint') as layer WITH spatialAddNode(n1,layer) as node1, layer " +
+      "CREATE (n2:SomeLayerX {lat: 34.221, lon: 46.221, name: 'node2'}) WITH spatialAddNode(n2, layer) as node2, layer " +
+      "CREATE (n3:SomeLayerX {lat: 34.221, lon: 46.221, name: 'node3'}) WITH spatialAddNode(n3, layer) as node3, layer " +
+      "CREATE (n4:SomeLayerX {lat: 21.341, lon: 96.122, name: 'node4'}) WITH spatialAddNode(n4, layer) as node4, layer " +
+      "MATCH (n:SomeLayerX) WHERE Intersects(n, 'POINT(46.221 34.221)') RETURN n.name as n")
       //"RETURN node.name as n")
-    result.toList should equal(List(Map("n"->"node2")))
+    result.toList should equal(List(Map("n"->"node2"), Map("n"->"node3")))
   }
 
 

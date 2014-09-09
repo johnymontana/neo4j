@@ -60,12 +60,6 @@ class DelegatingQueryContext(inner: QueryContext) extends QueryContext {
 
   def relationshipOps = inner.relationshipOps
 
-
-
-
-
-
-
   def removeLabelsFromNode(node: Long, labelIds: Iterator[Int]): Int =
     singleDbHit(inner.removeLabelsFromNode(node, labelIds))
 
@@ -116,7 +110,7 @@ class DelegatingQueryContext(inner: QueryContext) extends QueryContext {
     inner.createSimplePointLayer(name, config)
   }
 
-  def getLayer(name: String): Layer = inner.getLayer(name)
+  def getLayer(name: String, node: Node): Layer = inner.getLayer(name, node)
 
   def createLayer(name: String, layerType: String, config: String): Unit = {
     inner.createLayer(name, layerType, config)

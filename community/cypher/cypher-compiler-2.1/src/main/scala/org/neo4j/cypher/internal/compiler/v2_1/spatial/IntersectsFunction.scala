@@ -59,8 +59,16 @@ case class IntersectsFunction(a:Expression, b:Expression, layerExp:Expression = 
     }
   }
 
+  def getNode(a: Any): Node = {
+    a match {
+      case n: Node => n
+      case _ => null
+    }
+  }
+
   override def apply(ctx: ExecutionContext)(implicit state: QueryState): Any = {
-    val layer: Layer = state.query.getLayer(layerExp(ctx).asInstanceOf[String])
+    val name: String = layerExp(ctx).asInstanceOf[String]
+    val layer: Layer = state.query.getLayer(name, getNode(a(ctx)))
     getGeometry(a(ctx), layer).intersects(getGeometry(b(ctx), layer))
   }
 
