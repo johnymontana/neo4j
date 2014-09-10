@@ -19,7 +19,6 @@
  */
 package org.neo4j.cypher.internal.compiler.v2_1.commands
 
-import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.neo4j.cypher.internal.commons.CypherFunSuite
@@ -31,8 +30,6 @@ import org.neo4j.cypher.internal.compiler.v2_1.spi.QueryContext
 import org.neo4j.gis.spatial.Layer
 import org.neo4j.gis.spatial.encoders.SimplePointEncoder
 import org.neo4j.graphdb.Node
-import org.scalatest.Assertions
-import org.scalatest.mock.MockitoSugar
 
 /**
  * Created by lyonwj on 6/18/14.
